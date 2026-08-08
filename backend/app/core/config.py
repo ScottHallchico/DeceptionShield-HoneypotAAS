@@ -56,8 +56,10 @@ class Settings(BaseSettings):
     # ── AI / Embeddings ───────────────────────────────────────
     anthropic_api_key: str = ""
     openai_api_key: str = ""
+    groq_api_key: str = ""
     embedding_model: str = "text-embedding-3-small"
     claude_model: str = "claude-sonnet-4-20250514"
+    groq_model: str = "llama3-8b-8192"
 
     # ── Alerting ──────────────────────────────────────────────
     slack_webhook_url: str = ""
@@ -70,7 +72,7 @@ class Settings(BaseSettings):
     # ── Application ───────────────────────────────────────────
     app_env: Literal["development", "staging", "production"] = "development"
     app_debug: bool = True
-    cors_origins: str = "http://localhost:5173,http://localhost:3000"
+    cors_origins: str = "http://localhost:5173,http://localhost:3000,http://localhost:8081"
     log_level: str = "INFO"
 
     @property

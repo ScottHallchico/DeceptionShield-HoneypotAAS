@@ -345,24 +345,45 @@ async def query_claude(
         "content": f"Context data from honeypot network:\n\n{context}\n\n---\n\nQuestion: {question}",
     })
 
-    if not settings.anthropic_api_key:
-        # Fallback: generate a structured response without Claude
-        return _fallback_response(question, context_events, aggregate_stats)
+    if settings.groq_api_key:
+        try:
+            from openai import AsyncOpenAI
+            
+            client = AsyncOpenAI(
+                api_key=settings.groq_api_key, 
+                base_url="https://api.groq.com/openai/v1"
+            )
+            # OpenAI/Groq needs system prompt as a message
+            messages.insert(0, {"role": "system", "content": SYSTEM_PROMPT})
+            
+            response = await client.chat.completions.create(
+                model=settings.groq_model,
+                max_tokens=1024,
+                messages=messages,
+            )
+            return response.choices[0].message.content
+        except Exception as exc:
+            log.error("groq_api_failed", error=str(exc))
+            return _fallback_response(question, context_events, aggregate_stats)
+            
+    elif settings.anthropic_api_key:
+        try:
+            from anthropic import AsyncAnthropic
 
-    try:
-        from anthropic import AsyncAnthropic
-
-        client = AsyncAnthropic(api_key=settings.anthropic_api_key)
-        response = await client.messages.create(
-            model=settings.claude_model,
-            max_tokens=1024,
-            system=SYSTEM_PROMPT,
-            messages=messages,
-        )
-        return response.content[0].text
-
-    except Exception as exc:
-        log.error("claude_api_failed", error=str(exc))
+            client = AsyncAnthropic(api_key=settings.anthropic_api_key)
+            response = await client.messages.create(
+                model=settings.claude_model,
+                max_tokens=1024,
+                system=SYSTEM_PROMPT,
+                messages=messages,
+            )
+            return response.content[0].text
+        except Exception as exc:
+            log.error("claude_api_failed", error=str(exc))
+            return _fallback_response(question, context_events, aggregate_stats)
+            
+    else:
+        # Fallback: generate a structured response without an LLM
         return _fallback_response(question, context_events, aggregate_stats)
 
 

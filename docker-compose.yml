@@ -19,7 +19,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./backend/scripts/init_db.sql:/docker-entrypoint-initdb.d/01-init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U honeypot"]
       interval: 5s
@@ -76,7 +76,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       APP_ENV: development
       APP_DEBUG: "true"
-      CORS_ORIGINS: "http://localhost:5173,http://localhost:3000"
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:3000,http://localhost:8081,http://localhost:8000"
     env_file:
       - ./backend/.env
     networks:
@@ -96,10 +96,11 @@ services:
       HONEYPOT_ID: cowrie-ssh-01
     mem_limit: 256m
     cpus: 0.5
-    read_only: true
-    tmpfs:
-      - /tmp
-      - /cowrie/cowrie-git/var
+    # read_only: true
+    # tmpfs:
+    #   - /tmp
+    #   - /cowrie/cowrie-git/var/run
+    #   - /cowrie/cowrie-git/var/lib/cowrie
     volumes:
       - cowrie_logs:/cowrie/cowrie-git/var/log/cowrie
     networks:
@@ -145,6 +146,7 @@ services:
     image: elastic/filebeat:8.12.0
     container_name: honeypot-filebeat
     user: root
+    command: filebeat -e -strict.perms=false
     volumes:
       - ./backend/scripts/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - cowrie_logs:/var/log/cowrie:ro

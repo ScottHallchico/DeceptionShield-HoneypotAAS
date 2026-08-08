@@ -1,0 +1,213 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * SENTINEL DECEPTION GRID — SOC console design system.
+ * Dark-only, high contrast, monospace-forward technical aesthetic.
+ * Severity is the only saturated color in the system.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  --color-sev-low: var(--sev-low);
+  --color-sev-medium: var(--sev-medium);
+  --color-sev-high: var(--sev-high);
+  --color-sev-critical: var(--sev-critical);
+
+  --color-chart-1: var(--primary);
+  --color-chart-2: var(--sev-medium);
+  --color-chart-3: var(--sev-high);
+  --color-chart-4: var(--sev-critical);
+  --color-chart-5: var(--muted-foreground);
+
+  --color-sidebar: var(--surface);
+  --color-sidebar-foreground: var(--foreground);
+  --color-sidebar-primary: var(--primary);
+  --color-sidebar-primary-foreground: var(--primary-foreground);
+  --color-sidebar-accent: var(--surface-raised);
+  --color-sidebar-accent-foreground: var(--foreground);
+  --color-sidebar-border: var(--border);
+  --color-sidebar-ring: var(--ring);
+
+  --shadow-panel: 0 1px 0 0 oklch(1 0 0 / 4%) inset, 0 18px 40px -24px oklch(0 0 0 / 80%);
+  --shadow-glow: 0 0 0 1px var(--primary), 0 0 24px -6px var(--primary);
+}
+
+:root {
+  --radius: 0.25rem;
+
+  --background: oklch(0.155 0.014 248);
+  --foreground: oklch(0.93 0.008 240);
+  --surface: oklch(0.185 0.015 248);
+  --surface-raised: oklch(0.225 0.016 248);
+  --card: oklch(0.185 0.015 248);
+  --card-foreground: oklch(0.93 0.008 240);
+  --popover: oklch(0.205 0.016 248);
+  --popover-foreground: oklch(0.93 0.008 240);
+
+  --primary: oklch(0.79 0.135 187);
+  --primary-foreground: oklch(0.16 0.02 200);
+  --secondary: oklch(0.245 0.017 248);
+  --secondary-foreground: oklch(0.9 0.008 240);
+  --muted: oklch(0.235 0.014 248);
+  --muted-foreground: oklch(0.66 0.015 245);
+  --accent: oklch(0.26 0.02 248);
+  --accent-foreground: oklch(0.93 0.008 240);
+
+  --destructive: oklch(0.62 0.215 25);
+  --destructive-foreground: oklch(0.97 0.01 25);
+
+  --border: oklch(0.27 0.016 248);
+  --border-strong: oklch(0.36 0.02 248);
+  --input: oklch(0.28 0.016 248);
+  --ring: oklch(0.79 0.135 187);
+
+  --sev-low: oklch(0.76 0.115 172);
+  --sev-medium: oklch(0.82 0.145 85);
+  --sev-high: oklch(0.71 0.175 48);
+  --sev-critical: oklch(0.63 0.23 20);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: oklch(0.79 0.135 187 / 25%);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 8px;
+  }
+}
+
+/* Faint engineering grid used behind hero / map surfaces */
+@utility grid-field {
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 3.5%) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 3.5%) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+@utility scanline {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      oklch(1 0 0 / 2%) 0px,
+      oklch(1 0 0 / 2%) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: overlay;
+  }
+}
+
+@utility panel {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-panel);
+}
+
+@utility label-caps {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+@utility mono-ip {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: -0.01em;
+}
+
+@utility pulse-ring {
+  animation: pulse-ring 1.4s cubic-bezier(0.22, 1, 0.36, 1) 2;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.79 0.135 187 / 45%);
+  }
+  100% {
+    box-shadow: 0 0 0 14px oklch(0.79 0.135 187 / 0%);
+  }
+}
+
+@keyframes feed-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    background-color: oklch(0.79 0.135 187 / 10%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    background-color: transparent;
+  }
+}
+
+@utility feed-in {
+  animation: feed-in 0.5s ease-out;
+}

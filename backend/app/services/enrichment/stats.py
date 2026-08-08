@@ -58,7 +58,7 @@ async def compute_dashboard_stats() -> dict[str, Any]:
         # Top attacking countries (from attacker geo data)
         top_countries_result = await session.execute(
             select(
-                func.json_extract_path_text(Attacker.geo, "country").label("country"),
+                func.jsonb_extract_path_text(Attacker.geo, "country").label("country"),
                 func.count(Attacker.id).label("count"),
             )
             .where(Attacker.geo.isnot(None))

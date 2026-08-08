@@ -11,7 +11,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.logging import setup_logging
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifecycle — startup and shutdown hooks."""
@@ -113,9 +112,13 @@ def create_app() -> FastAPI:
     # ── WebSocket ─────────────────────────────────────────────
     from app.api.websocket.broadcaster import websocket_handler
 
-    @app.websocket("/ws/live")
-    async def ws_live(ws):
+    from starlette.routing import WebSocketRoute
+    from fastapi import WebSocket
+
+    async def ws_live(ws: WebSocket):
         await websocket_handler(ws)
+
+    app.router.routes.append(WebSocketRoute("/ws/live", ws_live))
 
     # ── Health check ──────────────────────────────────────────
     @app.get("/health")

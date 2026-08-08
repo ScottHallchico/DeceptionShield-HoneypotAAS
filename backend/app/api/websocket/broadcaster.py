@@ -82,8 +82,8 @@ async def _stats_heartbeat_loop() -> None:
                 stats = await compute_dashboard_stats()
                 await broadcast_stats({
                     "active_honeypots": int(stats["active_honeypots"]),
-                    "total_events_24h": int(stats["total_events_24h"]),
-                    "active_blocks": int(stats["active_blocks"]),
+                    "total_events_24h": int(stats["events_last_24h"]),
+                    "active_blocks": int(stats["blocked_ips"]),
                 })
         except asyncio.CancelledError:
             break

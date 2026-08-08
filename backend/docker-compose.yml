@@ -14,7 +14,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=honeypotaas
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     networks:
@@ -38,7 +38,7 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
+      - "9093:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -57,6 +57,8 @@ services:
       - ./app:/app/app
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/honeypotaas
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
@@ -71,7 +73,7 @@ services:
   cowrie:
     build: honeypots/cowrie
     ports:
-      - "2222:2222"
+      - "2223:2222"
     networks:
       - honeypot-net
     # In production, we'd mount filebeat here to push logs to kafka
