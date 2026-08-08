@@ -86,7 +86,11 @@ def _parse_cowrie_log(raw: dict[str, Any]) -> dict[str, Any] | None:
     elif "command" in event_id:
         event_type = "command_exec"
         technique = "credential_reuse"
-        payload = raw.get("input", raw.get("message", ""))
+        payload_val = raw.get("input")
+        if isinstance(payload_val, dict):
+            payload = raw.get("message", "")
+        else:
+            payload = str(payload_val) if payload_val else raw.get("message", "")
     elif "download" in event_id or "transfer" in event_id:
         event_type = "file_download"
         technique = "payload_drop"
@@ -106,7 +110,7 @@ def _parse_cowrie_log(raw: dict[str, Any]) -> dict[str, Any] | None:
         "event_type": event_type,
         "technique": technique,
         "payload": payload,
-        "session_id": raw.get("session", None),
+        "session_id": None,  # Cowrie sessions are short strings, DB expects UUID
         "timestamp": raw.get("timestamp", datetime.now(UTC).isoformat()),
     }
 

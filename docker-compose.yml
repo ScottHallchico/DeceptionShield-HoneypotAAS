@@ -76,7 +76,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       APP_ENV: development
       APP_DEBUG: "true"
-      CORS_ORIGINS: "http://localhost:5173,http://localhost:3000,http://localhost:8081,http://localhost:8000"
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:3000,http://localhost:3001,http://localhost:8081,http://localhost:8000"
     env_file:
       - ./backend/.env
     networks:
