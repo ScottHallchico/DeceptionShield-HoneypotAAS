@@ -1,0 +1,50 @@
+# Filebeat configuration for shipping honeypot logs to Kafka
+# Section 1.3 of the implementation plan
+
+filebeat.inputs:
+  # Cowrie SSH/Telnet honeypot logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/cowrie/cowrie.json
+    json.keys_under_root: true
+    json.add_error_key: true
+    fields:
+      honeypot_type: cowrie
+    fields_under_root: true
+
+  # WordPress decoy logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/wp-decoy/wp-decoy.json
+    json.keys_under_root: true
+    json.add_error_key: true
+    fields:
+      honeypot_type: wp-decoy
+    fields_under_root: true
+
+  # RDP decoy logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/rdp-decoy/rdp-decoy.json
+    json.keys_under_root: true
+    json.add_error_key: true
+    fields:
+      honeypot_type: rdp-decoy
+    fields_under_root: true
+
+# Output to Kafka
+output.kafka:
+  hosts: ["kafka:29092"]
+  topic: "raw-honeypot-events"
+  partition.round_robin:
+    reachable_only: false
+  required_acks: 1
+  compression: gzip
+  max_message_bytes: 1000000
+
+# Logging
+logging.level: info
+logging.to_stderr: true

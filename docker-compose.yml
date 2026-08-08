@@ -1,0 +1,175 @@
+# HoneypotAAS — Full local development stack
+# docker-compose.yml (section 3.2 of the implementation plan)
+#
+# Usage: docker compose up -d
+# Or:    make dev
+
+version: "3.9"
+
+services:
+  # ── Database: Postgres + TimescaleDB + pgvector ─────────────
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: honeypot-db
+    environment:
+      POSTGRES_USER: honeypot
+      POSTGRES_PASSWORD: honeypot_secret
+      POSTGRES_DB: honeypot_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U honeypot"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - backend-net
+
+  # ── Message Queue: Kafka + Zookeeper ────────────────────────
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: honeypot-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - backend-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: honeypot-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - backend-net
+      - honeypot-net
+
+  # ── Backend API (FastAPI) ───────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: honeypot-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://honeypot:honeypot_secret@postgres:5432/honeypot_db
+      DATABASE_SYNC_URL: postgresql://honeypot:honeypot_secret@postgres:5432/honeypot_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      APP_ENV: development
+      APP_DEBUG: "true"
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:3000"
+    env_file:
+      - ./backend/.env
+    networks:
+      - backend-net
+    restart: unless-stopped
+
+  # ── Honeypots (isolated network) ────────────────────────────
+
+  cowrie:
+    build:
+      context: ./backend/honeypots/cowrie
+    container_name: honeypot-cowrie
+    ports:
+      - "2222:2222"   # SSH
+      - "2223:2223"   # Telnet
+    environment:
+      HONEYPOT_ID: cowrie-ssh-01
+    mem_limit: 256m
+    cpus: 0.5
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /cowrie/cowrie-git/var
+    volumes:
+      - cowrie_logs:/cowrie/cowrie-git/var/log/cowrie
+    networks:
+      - honeypot-net
+    restart: unless-stopped
+
+  wp-decoy:
+    build:
+      context: ./backend/honeypots/wp_decoy
+    container_name: honeypot-wp-decoy
+    ports:
+      - "8080:8080"
+    environment:
+      HONEYPOT_ID: wp-decoy-01
+      PORT: "8080"
+    mem_limit: 128m
+    cpus: 0.25
+    volumes:
+      - wp_logs:/var/log/honeypot
+    networks:
+      - honeypot-net
+    restart: unless-stopped
+
+  rdp-decoy:
+    build:
+      context: ./backend/honeypots/rdp_decoy
+    container_name: honeypot-rdp-decoy
+    ports:
+      - "3389:3389"
+    environment:
+      HONEYPOT_ID: rdp-decoy-01
+      PORT: "3389"
+    mem_limit: 128m
+    cpus: 0.25
+    volumes:
+      - rdp_logs:/var/log/honeypot
+    networks:
+      - honeypot-net
+    restart: unless-stopped
+
+  # ── Log shipping (Filebeat sidecars) ────────────────────────
+  filebeat:
+    image: elastic/filebeat:8.12.0
+    container_name: honeypot-filebeat
+    user: root
+    volumes:
+      - ./backend/scripts/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - cowrie_logs:/var/log/cowrie:ro
+      - wp_logs:/var/log/wp-decoy:ro
+      - rdp_logs:/var/log/rdp-decoy:ro
+    depends_on:
+      - kafka
+    networks:
+      - honeypot-net
+      - backend-net
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  cowrie_logs:
+  wp_logs:
+  rdp_logs:
+
+networks:
+  # Backend network: DB, Kafka, API — no direct honeypot access
+  backend-net:
+    driver: bridge
+
+  # Honeypot network: isolated, only connects to Kafka via Filebeat
+  # NO peering with backend-net — honeypots cannot reach the database
+  honeypot-net:
+    driver: bridge
+    internal: false  # Needs external access to be reachable by attackers
