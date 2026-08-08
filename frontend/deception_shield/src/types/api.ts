@@ -79,6 +79,7 @@ export interface SessionDetail {
   events: AttackEvent[];
   /** Raw TTY log frames (Cowrie sessions only) */
   tty_log: string | null;
+  terminal_frames: TerminalFrame[];
   commands: string[] | null;
   duration_seconds: number | null;
 }
@@ -95,6 +96,7 @@ export interface AttackerProfile {
   is_blocked: boolean;
   threat_score: number;
   techniques_used: string[];
+  sessions: string[];
 }
 
 export interface Stats {
@@ -144,12 +146,18 @@ export interface ResponseRule {
 
 export interface AuthTokens {
   access_token: string;
-  refresh_token: string;
+  refresh_token?: string;
+}
+
+export interface HeartbeatStats {
+  active_honeypots: number;
+  total_events_24h: number;
+  active_blocks: number;
 }
 
 export interface Heartbeat {
   type: "stats_heartbeat";
-  data: Stats;
+  data: HeartbeatStats;
 }
 
 export interface LiveEventWrapper {

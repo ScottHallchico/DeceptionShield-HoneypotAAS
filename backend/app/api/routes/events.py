@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 from datetime import datetime
 
@@ -99,6 +100,13 @@ async def get_session_detail(
     )
     events = events_result.scalars().all()
 
+    frames = []
+    if session_obj.tty_log:
+        try:
+            frames = json.loads(session_obj.tty_log)
+        except json.JSONDecodeError:
+            pass
+
     return SessionResponse(
         id=session_obj.id,
         attacker_ip=session_obj.attacker_ip,
@@ -110,5 +118,6 @@ async def get_session_detail(
         event_count=session_obj.event_count,
         commands=session_obj.commands,
         tty_log=session_obj.tty_log,
+        terminal_frames=frames,
         events=[EventResponse.model_validate(e) for e in events],
     )

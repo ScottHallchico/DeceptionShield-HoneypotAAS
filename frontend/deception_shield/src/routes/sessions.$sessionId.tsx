@@ -53,7 +53,7 @@ function SessionPage() {
           {isLoading ? (
             <p className="p-4 text-xs text-muted-foreground">Loading capture…</p>
           ) : (
-            <SessionPlayer frames={data?.tty_log ? JSON.parse(data.tty_log) : []} />
+            <SessionPlayer frames={data?.terminal_frames || []} />
           )}
         </SectionCard>
 

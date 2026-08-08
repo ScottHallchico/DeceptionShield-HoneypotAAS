@@ -11,7 +11,7 @@ import type {
   SessionDetail,
   Stats,
 } from "@/types/api";
-import { getAccessToken } from "@/store/auth";
+import { getAccessToken, useAuthStore } from "@/store/auth";
 import {
   HONEYPOTS,
   MOCK_RULES,
@@ -48,6 +48,39 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       ...(init.headers ?? {}),
     },
   });
+  if (res.status === 401 && path !== "/auth/refresh") {
+    // Attempt to refresh the token
+    try {
+      const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (refreshRes.ok) {
+        const data = await refreshRes.json();
+        // Update the access token in the store (assuming we can get the user name from somewhere or keep the existing one)
+        const currentUser = useAuthStore.getState().user;
+        useAuthStore.getState().setSession(data.access_token, currentUser ?? "admin");
+        
+        // Retry the original request with the new token
+        const retryRes = await fetch(`${API_BASE}${path}`, {
+          ...init,
+          credentials: "include",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${data.access_token}`,
+            ...(init.headers ?? {}),
+          },
+        });
+        if (!retryRes.ok) throw new ApiError(`${init.method ?? "GET"} ${path} failed after refresh`, retryRes.status);
+        return (await retryRes.json()) as T;
+      } else {
+        useAuthStore.getState().clear();
+      }
+    } catch {
+      useAuthStore.getState().clear();
+    }
+  }
+
   if (!res.ok) throw new ApiError(`${init.method ?? "GET"} ${path} failed`, res.status);
   return (await res.json()) as T;
 }

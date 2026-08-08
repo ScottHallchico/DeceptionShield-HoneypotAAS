@@ -24,11 +24,11 @@ export const Route = createFileRoute("/honeypots")({
   component: HoneypotsPage,
 });
 
-const STATUS_STYLE: Record<HoneypotStatus, string> = {
-  running: "bg-sev-low/12 text-sev-low",
-  deploying: "bg-sev-medium/12 text-sev-medium",
-  error: "bg-sev-critical/16 text-sev-critical",
-  stopped: "bg-sev-critical/16 text-sev-critical",
+const STATUS_DISPLAY: Record<HoneypotStatus, { label: string; color: string }> = {
+  running: { label: "healthy", color: "bg-sev-low/12 text-sev-low" },
+  deploying: { label: "degraded", color: "bg-sev-medium/12 text-sev-medium" },
+  stopped: { label: "down", color: "bg-sev-critical/16 text-sev-critical" },
+  error: { label: "down", color: "bg-sev-critical/16 text-sev-critical" },
 };
 
 function HoneypotsPage() {
@@ -61,9 +61,14 @@ function HoneypotsPage() {
                   <tr key={h.id} className="border-b border-border/60 text-xs">
                     <td className="px-3 py-3 font-mono text-[12px] text-foreground">{h.id}</td>
                     <td className="px-3 py-3 text-muted-foreground">{h.type}</td>
-                    <td className="px-3 py-3">
-                      <span className={cn("label-caps px-1.5 py-1", STATUS_STYLE[h.status])}>
-                        {h.status}
+                    <td className="px-3 py-2">
+                      <span
+                        className={cn(
+                          "label-caps inline-block rounded-none px-1.5 py-0.5 text-[10px]",
+                          STATUS_DISPLAY[h.status]?.color,
+                        )}
+                      >
+                        {STATUS_DISPLAY[h.status]?.label ?? h.status}
                       </span>
                     </td>
                     <td className="px-3 py-3 font-mono text-[11px] text-muted-foreground">

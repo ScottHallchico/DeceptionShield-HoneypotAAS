@@ -62,9 +62,14 @@ export function LiveEventsProvider({ children }: { children: ReactNode }) {
       const hb = setInterval(() => {
         const buf = bufferRef.current;
         const dayAgo = Date.now() - 86_400_000;
+        const stats = buildStats(buf);
         emit({
           type: "stats_heartbeat",
-          data: buildStats(buf),
+          data: {
+            active_honeypots: stats.active_honeypots,
+            total_events_24h: stats.total_events,
+            active_blocks: stats.blocked_ips,
+          },
         });
       }, 5000);
       return () => {
@@ -88,7 +93,12 @@ export function LiveEventsProvider({ children }: { children: ReactNode }) {
       };
       socket.onmessage = (msg) => {
         try {
-          emit(JSON.parse(msg.data as string) as LiveMessage);
+          const parsed = JSON.parse(msg.data as string) as { type: string; data: unknown };
+          if (parsed.type === "stats_heartbeat") {
+            emit({ type: "stats_heartbeat", data: parsed.data } as Heartbeat);
+          } else if (parsed.type === "event") {
+            emit({ type: "event", data: parsed.data as AttackEvent });
+          }
         } catch {
           /* ignore malformed frame */
         }

@@ -92,6 +92,7 @@ class AttackerResponse(BaseModel):
     reputation: ReputationInfo | None = None
     threat_score: float
     is_blocked: bool
+    sessions: list[str] = []
 
     model_config = {"from_attributes": True}
 
@@ -115,6 +116,7 @@ class SessionResponse(BaseModel):
     event_count: int
     commands: list[str] | None = None
     tty_log: str | None = None
+    terminal_frames: list[dict] = []
     events: list[EventResponse] = []
 
     model_config = {"from_attributes": True}

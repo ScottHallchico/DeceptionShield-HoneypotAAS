@@ -48,9 +48,9 @@ export function StatsStrip() {
     const dayAgo = Date.now() - 86_400_000;
     const today = events.filter((e) => Date.parse(e.timestamp) > dayAgo);
     return {
-      attacks: hb?.total_events ?? today.length,
-      attackers: hb?.total_attackers ?? new Set(today.map((e) => e.attacker_ip)).size,
-      blocked: hb?.blocked_ips ?? 0,
+      attacks: hb?.total_events_24h ?? today.length,
+      attackers: new Set(today.map((e) => e.attacker_ip)).size,
+      blocked: hb?.active_blocks ?? 0,
       critical: today.filter((e) => e.severity === "critical").length,
     };
   }, [events, hb]);

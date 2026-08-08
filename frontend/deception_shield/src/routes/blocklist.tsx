@@ -55,17 +55,31 @@ function RuleRow({ rule }: { rule: ResponseRule }) {
     </label>
   );
 
+  const text = (key: "description" | "honeypot_type" | "severity_filter", label: string, placeholder?: string) => (
+    <label className="flex flex-col gap-1">
+      <span className="label-caps">{label}</span>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={draft[key] ?? ""}
+        onChange={(e) => setDraft({ ...draft, [key]: e.target.value || undefined })}
+        className="h-7 w-28 border border-input bg-surface-raised px-2 font-mono text-[11px] focus:border-primary focus:outline-none"
+      />
+    </label>
+  );
+
   return (
-    <div className="flex flex-wrap items-end gap-4 border-b border-border/60 px-4 py-3">
-      <div className="min-w-[190px] flex-1">
+    <div className="flex flex-col gap-3 border-b border-border/60 px-4 py-3">
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="min-w-[190px] flex-1">
         <div className="text-xs font-medium text-foreground">{rule.name}</div>
         <div className="label-caps mt-1">{rule.event_type}</div>
       </div>
-      {num("threshold_count", "events")}
-      {num("threshold_window_seconds", "within (s)")}
-      {num("block_duration_hours", "block (h)")}
-      <label className="flex flex-col gap-1">
-        <span className="label-caps">enabled</span>
+        {num("threshold_count", "events")}
+        {num("threshold_window_seconds", "within (s)")}
+        {num("block_duration_hours", "block (h)")}
+        <label className="flex flex-col gap-1">
+          <span className="label-caps">enabled</span>
         <button
           type="button"
           role="switch"
@@ -81,15 +95,21 @@ function RuleRow({ rule }: { rule: ResponseRule }) {
           {draft.is_enabled ? "on" : "off"}
         </button>
       </label>
-      <button
-        type="button"
-        disabled={!dirty || update.isPending}
-        onClick={() => update.mutate(draft)}
-        className="inline-flex h-7 items-center gap-1.5 border border-border-strong px-2.5 font-mono text-[10px] tracking-[0.12em] uppercase hover:border-primary hover:text-primary disabled:opacity-40"
-      >
-        {update.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
-        save
-      </button>
+        <button
+          type="button"
+          disabled={!dirty || update.isPending}
+          onClick={() => update.mutate(draft)}
+          className="inline-flex h-7 items-center gap-1.5 border border-border-strong px-2.5 font-mono text-[10px] tracking-[0.12em] uppercase hover:border-primary hover:text-primary disabled:opacity-40"
+        >
+          {update.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+          save
+        </button>
+      </div>
+      <div className="flex flex-wrap items-end gap-4">
+        {text("description", "description", "rule description...")}
+        {text("honeypot_type", "honeypot type", "e.g. rdp")}
+        {text("severity_filter", "severity filter", "e.g. critical")}
+      </div>
     </div>
   );
 }

@@ -178,8 +178,9 @@ export function buildAttackers(events: AttackEvent[]): AttackerProfile[] {
         total_events: evts.length,
         honeypots_hit: [...new Set(evts.map((e) => e.honeypot_id))],
         is_blocked: worst > 82,
-        threat_score: Math.min(100, Math.round(worst * 0.6 + critical * 4 + evts.length * 0.5)),
-        techniques_used: [...new Set(evts.map((e) => e.technique))],
+        threat_score: Math.min(100, Math.round(worst * 0.4 + critical * 3 + evts.length * 0.1)),
+        techniques_used: [...new Set(evts.map((e) => e.technique).filter((t) => t))],
+        sessions: ["mock-session-123"],
       };
     })
     .sort((a, b) => b.threat_score - a.threat_score);
@@ -278,6 +279,7 @@ export function buildSession(sessionId: string, events: AttackEvent[]): SessionD
     ended_at: new Date(Date.parse(base.timestamp) + 17000).toISOString(),
     events: sessionEvents.length ? sessionEvents : [base],
     tty_log: JSON.stringify(terminal),
+    terminal_frames: terminal,
     commands: [],
     duration_seconds: 17,
   };

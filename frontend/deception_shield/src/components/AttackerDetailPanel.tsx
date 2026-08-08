@@ -98,7 +98,25 @@ export function AttackerDetailPanel() {
               </ul>
             </div>
 
-
+            {profile.sessions && profile.sessions.length > 0 && (
+              <div className="mt-4">
+                <div className="label-caps">Sessions</div>
+                <ul className="mt-1.5 space-y-1">
+                  {profile.sessions.map((s) => (
+                    <li key={s}>
+                      <Link
+                        to="/sessions/$sessionId"
+                        params={{ sessionId: s }}
+                        className="flex items-center gap-1 font-mono text-[11px] text-primary hover:underline"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        {s.split("-")[0]}...
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </>
         )}
       </div>
