@@ -54,6 +54,10 @@ async def _write_to_db(event: dict[str, Any]) -> None:
         )
         session.add(db_event)
 
+        if event.get("session_id"):
+            from app.services.enrichment.session_builder import upsert_session_from_event
+            await upsert_session_from_event(session, event, db_event.timestamp)
+
         # Upsert attacker record
         result = await session.execute(
             select(Attacker).where(Attacker.ip == event["attacker_ip"])

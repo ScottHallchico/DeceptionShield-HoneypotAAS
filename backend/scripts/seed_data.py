@@ -76,30 +76,48 @@ def _weighted_severity() -> str:
     )[0]
 
 
-def _generate_event(timestamp: datetime) -> dict:
-    """Generate a single synthetic event."""
+def _generate_burst(timestamp: datetime) -> list[dict]:
+    """Generate a burst of synthetic events for a single session."""
     honeypot = random.choice(HONEYPOTS)
     attacker_ip = random.choice(ATTACKER_IPS)
-
-    # Weight event types based on honeypot type
+    session_id = str(uuid.uuid4())
+    
+    events = []
+    
     if honeypot["type"] == "cowrie":
-        event_type = random.choices(
-            ["login_attempt", "command_exec", "file_download"],
-            weights=[60, 30, 10],
-        )[0]
+        # 1 login
+        events.append(_create_event_dict(timestamp, honeypot, attacker_ip, "login_attempt", session_id))
+        
+        # 2-5 commands
+        for _ in range(random.randint(2, 5)):
+            timestamp += timedelta(seconds=random.randint(1, 5))
+            events.append(_create_event_dict(timestamp, honeypot, attacker_ip, "command_exec", session_id))
+            
+        if random.random() < 0.2:
+            timestamp += timedelta(seconds=random.randint(1, 5))
+            events.append(_create_event_dict(timestamp, honeypot, attacker_ip, "file_download", session_id))
+            
     elif honeypot["type"] == "wp-decoy":
-        event_type = random.choices(
-            ["login_attempt", "exploit_probe"],
-            weights=[70, 30],
-        )[0]
+        for _ in range(random.randint(3, 8)):
+            timestamp += timedelta(seconds=random.randint(1, 5))
+            event_type = random.choices(["login_attempt", "exploit_probe"], weights=[70, 30])[0]
+            events.append(_create_event_dict(timestamp, honeypot, attacker_ip, event_type, session_id))
+            
     elif honeypot["type"] == "rdp-decoy":
-        event_type = random.choices(
-            ["login_attempt", "port_scan"],
-            weights=[80, 20],
-        )[0]
+        for _ in range(random.randint(3, 8)):
+            timestamp += timedelta(seconds=random.randint(1, 5))
+            event_type = random.choices(["login_attempt", "port_scan"], weights=[80, 20])[0]
+            events.append(_create_event_dict(timestamp, honeypot, attacker_ip, event_type, session_id))
+            
     else:
-        event_type = random.choice(["exploit_probe", "port_scan", "file_download", "login_attempt"])
+        for _ in range(random.randint(3, 8)):
+            timestamp += timedelta(seconds=random.randint(1, 5))
+            event_type = random.choice(["exploit_probe", "port_scan", "file_download", "login_attempt"])
+            events.append(_create_event_dict(timestamp, honeypot, attacker_ip, event_type, session_id))
+            
+    return events
 
+def _create_event_dict(timestamp: datetime, honeypot: dict, attacker_ip: str, event_type: str, session_id: str) -> dict:
     technique, mitre_id = TECHNIQUES_MAP.get(event_type, (None, None))
 
     # Generate payload
@@ -133,7 +151,7 @@ def _generate_event(timestamp: datetime) -> dict:
         "technique": technique,
         "mitre_attck_id": mitre_id,
         "payload": payload,
-        "session_id": None,
+        "session_id": session_id,
         "timestamp": timestamp,
         "severity": _weighted_severity(),
         "summary_text": summary,
@@ -223,57 +241,67 @@ async def seed_database(num_events: int = 500) -> None:
         # Generate events spread over the last 48 hours
         now = datetime.now(timezone.utc)
         attacker_stats: dict[str, dict] = {}
+        from app.services.enrichment.session_builder import upsert_session_from_event
 
-        for i in range(num_events):
+        events_generated = 0
+        while events_generated < num_events:
             # Distribute events with higher density in recent hours
             hours_ago = random.expovariate(0.15)  # Exponential distribution
             hours_ago = min(hours_ago, 48)
             timestamp = now - timedelta(hours=hours_ago)
 
-            event_data = _generate_event(timestamp)
-            ip = event_data["attacker_ip"]
+            burst = _generate_burst(timestamp)
+            for event_data in burst:
+                ip = event_data["attacker_ip"]
 
-            # Track attacker stats
-            if ip not in attacker_stats:
-                attacker_stats[ip] = {
-                    "first_seen": timestamp,
-                    "last_seen": timestamp,
-                    "total_events": 0,
-                    "honeypots_hit": set(),
-                    "techniques_used": set(),
-                    "geo": event_data["geo"],
-                    "reputation": event_data["reputation"],
-                }
-            stats = attacker_stats[ip]
-            stats["total_events"] += 1
-            if timestamp < stats["first_seen"]:
-                stats["first_seen"] = timestamp
-            if timestamp > stats["last_seen"]:
-                stats["last_seen"] = timestamp
-            stats["honeypots_hit"].add(event_data["honeypot_id"])
-            if event_data["technique"]:
-                stats["techniques_used"].add(event_data["technique"])
+                # Track attacker stats
+                if ip not in attacker_stats:
+                    attacker_stats[ip] = {
+                        "first_seen": event_data["timestamp"],
+                        "last_seen": event_data["timestamp"],
+                        "total_events": 0,
+                        "honeypots_hit": set(),
+                        "techniques_used": set(),
+                        "geo": event_data["geo"],
+                        "reputation": event_data["reputation"],
+                    }
+                stats = attacker_stats[ip]
+                stats["total_events"] += 1
+                if event_data["timestamp"] < stats["first_seen"]:
+                    stats["first_seen"] = event_data["timestamp"]
+                if event_data["timestamp"] > stats["last_seen"]:
+                    stats["last_seen"] = event_data["timestamp"]
+                stats["honeypots_hit"].add(event_data["honeypot_id"])
+                if event_data["technique"]:
+                    stats["techniques_used"].add(event_data["technique"])
 
-            # Create event record
-            event = Event(
-                id=uuid.UUID(event_data["id"]),
-                honeypot_id=event_data["honeypot_id"],
-                honeypot_type=event_data["honeypot_type"],
-                attacker_ip=ip,
-                geo=event_data["geo"],
-                reputation=event_data["reputation"],
-                event_type=event_data["event_type"],
-                technique=event_data["technique"],
-                mitre_attck_id=event_data["mitre_attck_id"],
-                payload=event_data["payload"],
-                timestamp=timestamp,
-                severity=event_data["severity"],
-                summary_text=event_data["summary_text"],
-            )
-            session.add(event)
+                # Create event record
+                event = Event(
+                    id=uuid.UUID(event_data["id"]),
+                    honeypot_id=event_data["honeypot_id"],
+                    honeypot_type=event_data["honeypot_type"],
+                    attacker_ip=ip,
+                    geo=event_data["geo"],
+                    reputation=event_data["reputation"],
+                    event_type=event_data["event_type"],
+                    technique=event_data["technique"],
+                    mitre_attck_id=event_data["mitre_attck_id"],
+                    payload=event_data["payload"],
+                    session_id=uuid.UUID(event_data["session_id"]),
+                    timestamp=event_data["timestamp"],
+                    severity=event_data["severity"],
+                    summary_text=event_data["summary_text"],
+                )
+                # Ensure the Session record exists before inserting the Event to satisfy FK constraints
+                await upsert_session_from_event(session, event_data, event_data["timestamp"])
+                session.add(event)
 
-            if i % 100 == 0:
-                print(f"  Generated {i}/{num_events} events...")
+                events_generated += 1
+                if events_generated % 100 == 0:
+                    print(f"  Generated {events_generated}/{num_events} events...")
+                
+                if events_generated >= num_events:
+                    break
 
         # Create attacker records
         for ip, stats in attacker_stats.items():
