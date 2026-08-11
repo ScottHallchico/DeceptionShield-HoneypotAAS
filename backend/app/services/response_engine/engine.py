@@ -277,19 +277,48 @@ async def evaluate_rules(event: dict[str, Any]) -> None:
 
             count = (await session.execute(count_query)).scalar() or 0
 
-        if count >= rule.threshold_count:
+        # ── Midnight corroboration check ────────────────────────
+        # Query the Collective Defense Ledger for independent
+        # corroboration BEFORE finalizing the block decision. If other
+        # deployments have attested this indicator, we lower the
+        # effective threshold (corroborated threats need fewer local
+        # events to trigger a block).
+        corroboration_count = 0
+        midnight_note = ""
+        try:
+            from app.services.midnight.threat_ledger import query_indicator
+            corroboration = await query_indicator(attacker_ip)
+            corroboration_count = corroboration.get("corroborationCount", 0)
+            if corroboration_count > 0:
+                midnight_note = (
+                    f" | Midnight: {corroboration_count} independent "
+                    f"corroboration(s), {corroboration.get('highConfidenceCount', 0)} high-confidence"
+                )
+        except Exception as exc:
+            log.debug("midnight_query_skipped", error=str(exc))
+
+        # Lower threshold by 30% if independently corroborated
+        effective_threshold = rule.threshold_count
+        if corroboration_count > 0:
+            effective_threshold = max(1, int(rule.threshold_count * 0.7))
+
+        if count >= effective_threshold:
             log.info(
                 "rule_triggered",
                 rule_name=rule.name,
                 ip=attacker_ip,
                 count=count,
                 threshold=rule.threshold_count,
+                effective_threshold=effective_threshold,
+                midnight_corroboration=corroboration_count,
             )
             await block_ip(
                 ip=attacker_ip,
                 reason=(
                     f"Rule '{rule.name}' triggered: {count} events in "
-                    f"{rule.threshold_window_seconds}s (threshold: {rule.threshold_count})"
+                    f"{rule.threshold_window_seconds}s (threshold: {effective_threshold}"
+                    f"{', lowered from ' + str(rule.threshold_count) + ' via Midnight corroboration' if corroboration_count > 0 else ''}"
+                    f"){midnight_note}"
                 ),
                 rule_name=rule.name,
                 duration_hours=rule.block_duration_hours,
@@ -347,6 +376,52 @@ async def block_ip(
 
     # Send alert
     await _send_block_alert(ip, reason, rule_name)
+
+    # ── Midnight attestation (non-blocking, with error tracking) ─────
+    # Fire an attestation to the Collective Defense Ledger. This runs in
+    # a task so it doesn't slow the block action, but we track the result
+    # (txHash + status) on the blocklist entry rather than letting it
+    # fail silently.
+    async def _attest_and_update(entry_id, attacker_ip, severity):
+        try:
+            from app.services.midnight.threat_ledger import attest_indicator
+            result = await attest_indicator(
+                ip=attacker_ip,
+                severity=severity or "medium",
+            )
+            # Persist attestation result on the blocklist entry
+            async with async_session_factory() as sess:
+                from sqlalchemy import select as sel
+                from app.models.models import BlocklistEntry as BLE
+                r = await sess.execute(sel(BLE).where(BLE.id == entry_id))
+                ble = r.scalar_one_or_none()
+                if ble:
+                    ble.midnight_tx_hash = result.get("txHash")
+                    ble.midnight_attestation_status = result.get("status", "failed")
+                    await sess.commit()
+        except Exception as exc:
+            log.error("midnight_attest_task_failed", ip=attacker_ip, error=str(exc))
+            # Still try to mark as failed
+            try:
+                async with async_session_factory() as sess:
+                    from sqlalchemy import select as sel
+                    from app.models.models import BlocklistEntry as BLE
+                    r = await sess.execute(sel(BLE).where(BLE.id == entry_id))
+                    ble = r.scalar_one_or_none()
+                    if ble:
+                        ble.midnight_attestation_status = "failed"
+                        await sess.commit()
+            except Exception:
+                pass
+
+    # Determine severity from the reason string (best-effort extraction)
+    _severity = "medium"
+    for sev in ("critical", "high", "medium", "low"):
+        if sev in reason.lower():
+            _severity = sev
+            break
+
+    asyncio.create_task(_attest_and_update(entry.id, ip, _severity))
 
     log.info("ip_blocked", ip=ip, reason=reason, expires_at=entry.expires_at.isoformat())
     return entry

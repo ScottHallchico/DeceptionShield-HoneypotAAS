@@ -69,6 +69,14 @@ class Settings(BaseSettings):
     alert_email_to: str = ""
     alert_email_password: str = ""
 
+    # ── Midnight Blockchain ───────────────────────────────────
+    midnight_enabled: bool = False
+    midnight_bridge_url: str = "http://localhost:3001"
+    # SECURITY: This salt must NEVER appear in logs, error responses, or
+    # committed files. If it leaks, indicator-hash privacy is reversible
+    # by brute force over ~4.3B IPv4 addresses.
+    midnight_indicator_salt: str = "CHANGE_ME_DEPLOY_SALT"
+
     # ── Application ───────────────────────────────────────────
     app_env: Literal["development", "staging", "production"] = "development"
     app_debug: bool = True

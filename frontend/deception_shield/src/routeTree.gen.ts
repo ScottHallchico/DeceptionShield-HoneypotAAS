@@ -16,6 +16,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as HoneypotsRouteImport } from './routes/honeypots'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ThreatLedgerRouteImport } from './routes/threat-ledger'
 import { Route as SessionsSessionIdRouteImport } from './routes/sessions.$sessionId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +54,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ThreatLedgerRoute = ThreatLedgerRouteImport.update({
+  id: '/threat-ledger',
+  path: '/threat-ledger',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SessionsSessionIdRoute = SessionsSessionIdRouteImport.update({
   id: '/sessions/$sessionId',
   path: '/sessions/$sessionId',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/honeypots': typeof HoneypotsRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/threat-ledger': typeof ThreatLedgerRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/honeypots': typeof HoneypotsRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/threat-ledger': typeof ThreatLedgerRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/honeypots': typeof HoneypotsRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/threat-ledger': typeof ThreatLedgerRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/honeypots'
     | '/login'
     | '/settings'
+    | '/threat-ledger'
     | '/sessions/$sessionId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/honeypots'
     | '/login'
     | '/settings'
+    | '/threat-ledger'
     | '/sessions/$sessionId'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/honeypots'
     | '/login'
     | '/settings'
+    | '/threat-ledger'
     | '/sessions/$sessionId'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   HoneypotsRoute: typeof HoneypotsRoute
   LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
+  ThreatLedgerRoute: typeof ThreatLedgerRoute
   SessionsSessionIdRoute: typeof SessionsSessionIdRoute
 }
 
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/threat-ledger': {
+      id: '/threat-ledger'
+      path: '/threat-ledger'
+      fullPath: '/threat-ledger'
+      preLoaderRoute: typeof ThreatLedgerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sessions/$sessionId': {
       id: '/sessions/$sessionId'
       path: '/sessions/$sessionId'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   HoneypotsRoute: HoneypotsRoute,
   LoginRoute: LoginRoute,
   SettingsRoute: SettingsRoute,
+  ThreatLedgerRoute: ThreatLedgerRoute,
   SessionsSessionIdRoute: SessionsSessionIdRoute,
 }
 export const routeTree = rootRouteImport

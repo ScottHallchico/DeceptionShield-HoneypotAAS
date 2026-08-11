@@ -174,6 +174,8 @@ class BlocklistEntryResponse(BaseModel):
     rule_triggered: str | None = None
     action_taken: str | None = None
     is_active: bool
+    midnight_tx_hash: str | None = None
+    midnight_attestation_status: str | None = None  # "pending" | "confirmed" | "failed"
 
     model_config = {"from_attributes": True}
 

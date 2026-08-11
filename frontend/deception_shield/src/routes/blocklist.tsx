@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, ShieldOff } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldOff } from "lucide-react";
 import { AppShell, SectionCard } from "@/components/AppShell";
 import { useBlocklist, useRules, useUnblockIp, useUpdateRule } from "@/api/queries";
 import { countdown, relativeTime } from "@/lib/severity";
@@ -134,7 +134,7 @@ function BlocklistPage() {
           <table className="w-full min-w-[880px] text-left">
             <thead>
               <tr className="border-b border-border">
-                {["IP", "Blocked", "Expires in", "Rule triggered", "Reason", "Action taken", ""].map(
+                {["IP", "Blocked", "Expires in", "Rule triggered", "Reason", "Action taken", "Midnight", ""].map(
                   (h) => (
                     <th key={h} className="label-caps px-3 py-2 font-normal">
                       {h}
@@ -146,13 +146,13 @@ function BlocklistPage() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-6 text-xs text-muted-foreground">
+                  <td colSpan={8} className="px-3 py-6 text-xs text-muted-foreground">
                     Reading firewall state…
                   </td>
                 </tr>
               ) : blocks?.items?.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-6 text-xs text-muted-foreground">
+                  <td colSpan={8} className="px-3 py-6 text-xs text-muted-foreground">
                     No IPs are currently blocked.
                   </td>
                 </tr>
@@ -167,6 +167,31 @@ function BlocklistPage() {
                     <td className="px-3 py-3 text-muted-foreground">{b.rule_triggered}</td>
                     <td className="px-3 py-3 text-muted-foreground">{b.reason}</td>
                     <td className="px-3 py-3 font-mono text-[11px]">{b.action_taken}</td>
+                    <td className="px-3 py-3 text-right">
+                      {b.midnight_attestation_status === "confirmed" ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="verified-badge">
+                            <ShieldCheck className="h-3 w-3" /> verified
+                          </span>
+                          {b.midnight_tx_hash && (
+                            <a
+                              href={`https://explorer.midnight.network/tx/${b.midnight_tx_hash}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[10px] text-[var(--midnight-verified)] hover:underline opacity-80"
+                            >
+                              view tx ↗
+                            </a>
+                          )}
+                        </div>
+                      ) : b.midnight_attestation_status === "pending" ? (
+                        <span className="label-caps text-sev-medium">pending…</span>
+                      ) : b.midnight_attestation_status === "failed" ? (
+                        <span className="label-caps text-sev-critical">failed</span>
+                      ) : (
+                        <span className="label-caps">—</span>
+                      )}
+                    </td>
                     <td className="px-3 py-3 text-right">
                       <button
                         type="button"

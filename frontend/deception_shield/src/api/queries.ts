@@ -75,3 +75,21 @@ export function useUpdateRule() {
     onError: () => toast.error("Could not save rule"),
   });
 }
+
+// ─── Midnight Collective Defense Ledger ──────────────────────────────────────
+
+export const useMidnightStats = () =>
+  useQuery({
+    queryKey: ["midnight-stats"] as const,
+    queryFn: () => api.midnightStats(),
+    staleTime: 30_000,
+  });
+
+export function useMidnightQuery(ip: string) {
+  return useQuery({
+    queryKey: ["midnight-query", ip] as const,
+    queryFn: () => api.midnightQuery(ip),
+    enabled: !!ip,
+  });
+}
+

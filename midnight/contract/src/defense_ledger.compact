@@ -1,0 +1,94 @@
+// defense_ledger.compact
+//
+// DeceptionShield × Midnight — Collective Defense Ledger
+//
+// This contract manages a privacy-preserving, collective threat-intelligence
+// ledger. Multiple independent DeceptionShield deployments attest that they
+// have observed and blocked a given attacker indicator. The contract proves
+// that the severity assessment exceeds a confidence threshold WITHOUT ever
+// disclosing the actual score, the submitting organization, or any internal
+// network details.
+//
+// Ledger state (public, on-chain):
+//   corroborationCount  — how many independent deployments have attested
+//                         this indicator (keyed by anonymized hash)
+//   totalAttestations   — global counter of all attestations across the
+//                         network
+//   highConfidenceCount — subset of corroborationCount where the private
+//                         severity score cleared the high-confidence
+//                         threshold (≥ 70), without revealing the score
+//
+// Compile:
+//   compactc defense_ledger.compact --output ../build/
+//
+// NOTE: Compact syntax is evolving rapidly. Confirm exact syntax against the
+// current compiler version before first compilation. The structure below
+// follows the bboard reference template pattern.
+
+pragma language_version >= 1.0;
+
+// ─── Ledger state ───────────────────────────────────────────────────────────
+
+ledger corroborationCount: Map<Bytes<32>, Uint<32>>;
+ledger totalAttestations: Counter;
+ledger highConfidenceCount: Map<Bytes<32>, Uint<32>>;
+
+// ─── Circuits ───────────────────────────────────────────────────────────────
+
+// attestIndicator
+//
+// Called by the backend's response engine whenever it confirms and blocks an
+// attacker. The indicatorHash is pre-computed off-chain (SHA-256 of the
+// attacker IP + a per-deployment salt) so the raw IP never touches the chain
+// in any form.
+//
+// Parameters:
+//   indicatorHash  — the anonymized hash of the attacker indicator (disclosed)
+//   severityScore  — the deployment's severity assessment, 0-100 (PRIVATE —
+//                    never disclosed as a raw number)
+//
+// Effects:
+//   1. Increments the public corroboration counter for this indicator
+//   2. Increments the global attestation counter
+//   3. If severityScore >= 70, increments the high-confidence counter —
+//      disclosing only the boolean "above threshold", not the score itself
+
+circuit attestIndicator(
+  indicatorHash: Bytes<32>,
+  severityScore: Uint<8>
+): [] {
+  const disclosedHash = disclose(indicatorHash);
+
+  // Increment the public corroboration counter for this indicator
+  const currentCount = corroborationCount.lookup(disclosedHash) ?? 0;
+  corroborationCount.insert(disclosedHash, currentCount + 1);
+
+  // Increment the global attestation counter
+  totalAttestations.increment(1);
+
+  // Prove the predicate without disclosing the score itself:
+  // "this submission's severity score is above the high-confidence threshold"
+  if (severityScore >= 70) {
+    const currentHigh = highConfidenceCount.lookup(disclosedHash) ?? 0;
+    highConfidenceCount.insert(disclosedHash, currentHigh + 1);
+  }
+}
+
+// queryIndicator
+//
+// Read-only circuit called by any deployment (including the submitting one)
+// before finalizing an auto-block decision, to check whether an indicator
+// has independent corroboration elsewhere in the network.
+//
+// Parameters:
+//   indicatorHash — the anonymized hash to look up (disclosed for lookup)
+//
+// Returns:
+//   The current corroboration count for this indicator, or 0 if unseen.
+
+circuit queryIndicator(
+  indicatorHash: Bytes<32>
+): Uint<32> {
+  const disclosedHash = disclose(indicatorHash);
+  return corroborationCount.lookup(disclosedHash) ?? 0;
+}

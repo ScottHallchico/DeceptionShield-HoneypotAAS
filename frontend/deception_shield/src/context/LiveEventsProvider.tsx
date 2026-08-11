@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { isHeartbeat, type AttackEvent, type Heartbeat, type LiveMessage } from "@/types/api";
-import { USE_MOCK, recordMockEvent } from "@/api/client";
+import { USE_MOCK, recordMockEvent, api } from "@/api/client";
 import { SEED_EVENTS, startSeedStream, buildStats } from "@/mock/seedEvents";
 
 export type ConnectionState = "connecting" | "live" | "reconnecting" | "offline";
@@ -86,7 +86,43 @@ export function LiveEventsProvider({ children }: { children: ReactNode }) {
 
     const connect = () => {
       setConnection(attempt === 0 ? "connecting" : "reconnecting");
-      socket = new WebSocket(WS_URL);
+      try {
+        socket = new WebSocket(WS_URL);
+      } catch (err) {
+        // SecurityError when mixing ws:// from https:// pages
+        console.warn("[LiveEvents] WebSocket connect failed, falling back to REST poll:", err);
+        setConnection("offline");
+        
+        // REST fallback: Populate initial buffer
+        api.events().then((res) => {
+          bufferRef.current = res.items;
+          res.items.reverse().forEach((ev) => eventListeners.current.forEach((fn) => fn(ev)));
+        });
+
+        // REST fallback: Poll for stats and new events every 5 seconds
+        const fallbackHb = setInterval(() => {
+          api.stats().then((stats) => {
+            emit({
+              type: "stats_heartbeat",
+              data: {
+                active_honeypots: stats.active_honeypots,
+                total_events_24h: stats.events_last_24h,
+                active_blocks: stats.blocked_ips,
+              },
+            });
+          });
+          api.events().then((res) => {
+            // Find new events that aren't in our buffer
+            const newEvents = res.items.filter(
+              (ev) => !bufferRef.current.some((b) => b.id === ev.id)
+            );
+            newEvents.reverse().forEach((ev) => emit({ type: "event", data: ev }));
+          });
+        }, 5000);
+        
+        retryTimer = fallbackHb;
+        return;
+      }
       socket.onopen = () => {
         attempt = 0;
         setConnection("live");

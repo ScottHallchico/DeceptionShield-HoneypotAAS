@@ -100,6 +100,10 @@
   --sev-medium: oklch(0.82 0.145 85);
   --sev-high: oklch(0.71 0.175 48);
   --sev-critical: oklch(0.63 0.23 20);
+
+  /* Midnight blockchain accent */
+  --midnight-purple: oklch(0.68 0.18 290);
+  --midnight-verified: oklch(0.76 0.16 165);
 }
 
 @layer base {
@@ -210,4 +214,32 @@
 
 @utility feed-in {
   animation: feed-in 0.5s ease-out;
+}
+
+@utility verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--midnight-verified);
+  border: 1px solid oklch(0.76 0.16 165 / 35%);
+  background-color: oklch(0.76 0.16 165 / 8%);
+  padding: 0.2rem 0.5rem;
+}
+
+@keyframes midnight-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 oklch(0.68 0.18 290 / 0%);
+  }
+  50% {
+    box-shadow: 0 0 12px 2px oklch(0.68 0.18 290 / 25%);
+  }
+}
+
+@utility midnight-glow {
+  animation: midnight-glow 3s ease-in-out infinite;
 }

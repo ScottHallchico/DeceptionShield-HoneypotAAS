@@ -77,8 +77,26 @@ services:
       APP_ENV: development
       APP_DEBUG: "true"
       CORS_ORIGINS: "http://localhost:5173,http://localhost:3000,http://localhost:3001,http://localhost:8081,http://localhost:8000"
+      MIDNIGHT_ENABLED: "true"
+      MIDNIGHT_BRIDGE_URL: "http://midnight-bridge:3001"
+      MIDNIGHT_INDICATOR_SALT: "local-dev-salt-change-in-production"
     env_file:
       - ./backend/.env
+    networks:
+      - backend-net
+    restart: unless-stopped
+
+  # ── Midnight Bridge (Node.js sidecar) ──────────────────────
+  midnight-bridge:
+    build:
+      context: ./midnight-bridge
+    container_name: honeypot-midnight-bridge
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: "3001"
+      MIDNIGHT_SIMULATE: "true"
+      MIDNIGHT_NETWORK: "local-devnet"
     networks:
       - backend-net
     restart: unless-stopped

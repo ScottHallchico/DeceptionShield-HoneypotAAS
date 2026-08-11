@@ -1,0 +1,26 @@
+{
+  "name": "midnight-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal internal HTTP service wrapping Midnight SDK calls for the DeceptionShield Python backend",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "@midnight-ntwrk/compact-runtime": "*",
+    "@midnight-ntwrk/midnight-js-contracts": "*",
+    "@midnight-ntwrk/midnight-js": "*",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "*",
+    "@midnight-ntwrk/wallet-api": "*"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

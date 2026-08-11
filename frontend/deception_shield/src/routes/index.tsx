@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Activity, ArrowRight, Radar, ShieldCheck, Waypoints } from "lucide-react";
+import { Activity, ArrowRight, Radar, ShieldCheck, Waypoints, Database, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -103,6 +103,68 @@ function Landing() {
               </div>
             ))}
           </dl>
+        </div>
+      </section>
+
+      <section className="border-b border-border bg-[#050505] px-4 py-16 sm:px-6 relative overflow-hidden">
+        {/* Decorative gradient */}
+        <div className="absolute top-0 right-1/4 -translate-y-1/2 w-96 h-96 bg-[var(--midnight-purple)] rounded-full blur-[128px] opacity-20 pointer-events-none" />
+        
+        <div className="mx-auto max-w-4xl relative z-10">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="label-caps border border-[var(--midnight-purple)]/30 bg-[var(--midnight-purple)]/10 text-[var(--midnight-purple)] px-2 py-1.5 flex items-center gap-1.5">
+              <ShieldCheck className="h-3 w-3" /> Powered by Midnight
+            </span>
+          </div>
+          <h2 className="text-3xl font-semibold tracking-tight text-white mb-4">
+            Privacy-Preserving Collective Defense
+          </h2>
+          <p className="text-sm leading-relaxed text-muted-foreground max-w-2xl mb-12">
+            Sentinel integrates with the Midnight blockchain to automatically share threat intelligence across the network. Using zero-knowledge proofs, your honeypots instantly attest critical threats to the global ledger—protecting everyone without ever revealing your identity or exposing sensitive payloads.
+          </p>
+
+          <div className="border border-border bg-surface-raised p-8 relative">
+             <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
+                
+                {/* Local Node */}
+                <div className="flex flex-col items-center gap-3 w-32">
+                  <div className="h-16 w-16 rounded-full border border-primary/30 bg-primary/10 flex items-center justify-center relative">
+                    <Database className="h-6 w-6 text-primary" />
+                    <div className="absolute inset-0 rounded-full border border-primary animate-ping opacity-20" />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs font-semibold text-white">Your Honeypot</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">Detects Threat</div>
+                  </div>
+                </div>
+
+                {/* ZKP generation */}
+                <div className="flex-1 flex flex-col items-center gap-2 text-center w-full min-w-[120px]">
+                  <div className="label-caps text-[var(--midnight-purple)] mb-1">Zero-Knowledge Proof</div>
+                  <div className="flex w-full items-center">
+                    <div className="h-px bg-border flex-1" />
+                    <div className="border border-[var(--midnight-purple)]/50 bg-[var(--midnight-purple)]/10 p-2 mx-2 rotate-45">
+                       <Lock className="h-4 w-4 text-[var(--midnight-purple)] -rotate-45" />
+                    </div>
+                    <div className="h-px bg-border flex-1" />
+                  </div>
+                  <div className="text-[10px] text-muted-foreground mt-1">Hashes IP & Proves Severity</div>
+                </div>
+
+                {/* Midnight Ledger */}
+                <div className="flex flex-col items-center gap-3 w-32">
+                  <div className="h-16 w-16 border border-[var(--midnight-verified)]/40 bg-[var(--midnight-verified)]/10 flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[var(--midnight-verified)]/20 animate-pulse" />
+                    <Waypoints className="h-6 w-6 text-[var(--midnight-verified)] relative z-10" />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs font-semibold text-white">Defense Ledger</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">On-Chain Corroboration</div>
+                  </div>
+                </div>
+
+             </div>
+          </div>
         </div>
       </section>
 

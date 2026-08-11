@@ -106,7 +106,7 @@ def _parse_cowrie_log(raw: dict[str, Any]) -> dict[str, Any] | None:
     return {
         "honeypot_id": raw.get("sensor", raw.get("honeypot_id", "cowrie-01")),
         "honeypot_type": "cowrie",
-        "attacker_ip": raw.get("src_ip", ""),
+        "attacker_ip": raw.get("src_ip", raw.get("attacker_ip", "")),
         "event_type": event_type,
         "technique": technique,
         "payload": payload,
@@ -301,7 +301,7 @@ async def normalize_event(raw_json: str | bytes | dict) -> dict[str, Any] | None
 
     # Validate required fields
     if not parsed.get("attacker_ip"):
-        log.warning("missing_attacker_ip", event=parsed)
+        log.warning("missing_attacker_ip", parsed_event=parsed)
         return None
 
     # Deduplication check
@@ -325,8 +325,6 @@ async def normalize_event(raw_json: str | bytes | dict) -> dict[str, Any] | None
         parsed.get("payload"),
     )
     parsed["mitre_attck_id"] = mitre_id
-    if technique_label and not parsed.get("technique"):
-        parsed["technique"] = technique_label
 
     # Assign severity
     parsed["severity"] = _classify_severity(

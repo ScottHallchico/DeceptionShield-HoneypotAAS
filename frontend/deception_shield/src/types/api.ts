@@ -129,6 +129,23 @@ export interface BlocklistEntry {
   reason: string;
   rule_triggered: string;
   action_taken: string;
+  midnight_tx_hash?: string | null;
+  midnight_attestation_status?: "pending" | "confirmed" | "failed" | null;
+}
+
+// ─── Midnight Collective Defense Ledger ──────────────────────────────────────
+
+export interface MidnightStats {
+  totalAttestations: number;
+  uniqueIndicators: number;
+  networkMode: string;
+  enabled: boolean;
+}
+
+export interface MidnightIndicatorQuery {
+  ip: string;
+  corroborationCount: number;
+  highConfidenceCount: number;
 }
 
 export interface ResponseRule {

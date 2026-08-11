@@ -8,6 +8,7 @@ import {
   ScrollText,
   ServerCog,
   ShieldBan,
+  ShieldCheck,
   SlidersHorizontal,
   X,
 } from "lucide-react";
@@ -20,6 +21,7 @@ const NAV = [
   { to: "/dashboard", label: "Threat Console", icon: Radar },
   { to: "/attackers", label: "Attackers", icon: Crosshair },
   { to: "/blocklist", label: "Blocklist & Response", icon: ShieldBan },
+  { to: "/threat-ledger", label: "Threat Ledger", icon: ShieldCheck },
   { to: "/honeypots", label: "Fleet", icon: ServerCog },
   { to: "/settings", label: "Settings", icon: SlidersHorizontal },
 ] as const;

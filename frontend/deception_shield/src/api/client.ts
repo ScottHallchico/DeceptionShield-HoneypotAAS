@@ -6,6 +6,8 @@ import type {
   BlocklistEntry,
   EventQuery,
   Honeypot,
+  MidnightIndicatorQuery,
+  MidnightStats,
   Paginated,
   ResponseRule,
   SessionDetail,
@@ -269,6 +271,59 @@ export const api = {
     return request<AssistantQueryResponse>("/assistant/query", {
       method: "POST",
       body: JSON.stringify({ question, conversation_id: conversationId }),
+    });
+  },
+
+  // ─── Midnight Collective Defense Ledger ──────────────────────────────────
+
+  async midnightStats(): Promise<MidnightStats> {
+    if (USE_MOCK) {
+      await delay();
+      // Simulate growing attestation counts based on mock blocklist size
+      const attestations = mockState.blocklist.length * 3 + 47;
+      return {
+        totalAttestations: attestations,
+        uniqueIndicators: Math.floor(attestations * 0.6),
+        networkMode: "simulate",
+        enabled: true,
+      };
+    }
+    return request<MidnightStats>("/midnight/stats");
+  },
+
+  async midnightQuery(ip: string): Promise<MidnightIndicatorQuery> {
+    if (USE_MOCK) {
+      await delay(300);
+      // Simulate corroboration — blocked IPs have higher counts
+      const isBlocked = mockState.blocklist.some((b) => b.ip === ip);
+      const corroboration = isBlocked ? Math.floor(Math.random() * 5) + 1 : 0;
+      return {
+        ip,
+        corroborationCount: corroboration,
+        highConfidenceCount: Math.floor(corroboration * 0.7),
+      };
+    }
+    return request<MidnightIndicatorQuery>(`/midnight/query/${encodeURIComponent(ip)}`);
+  },
+
+  async simulateEvent(): Promise<void> {
+    const ip = `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+    if (USE_MOCK) {
+      await delay(500);
+      return;
+    }
+    await request("/ingest/event", {
+      method: "POST",
+      body: JSON.stringify({
+        honeypot_id: "dionaea-01",
+        honeypot_type: "dionaea",
+        type: "exploit",
+        event_type: "exploit_probe",
+        attacker_ip: ip,
+        src_ip: ip,
+        severity: "critical",
+        timestamp: new Date().toISOString()
+      }),
     });
   },
 };

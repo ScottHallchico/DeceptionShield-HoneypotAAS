@@ -96,6 +96,7 @@ def create_app() -> FastAPI:
     from app.api.routes.events import router as events_router
     from app.api.routes.honeypots import router as honeypots_router
     from app.api.routes.ingest import router as ingest_router
+    from app.api.routes.midnight import router as midnight_router
     from app.api.routes.rules import router as rules_router
     from app.api.routes.stats import router as stats_router
 
@@ -108,6 +109,7 @@ def create_app() -> FastAPI:
     app.include_router(rules_router)
     app.include_router(assistant_router)
     app.include_router(ingest_router)
+    app.include_router(midnight_router)
 
     # ── WebSocket ─────────────────────────────────────────────
     from app.api.websocket.broadcaster import websocket_handler

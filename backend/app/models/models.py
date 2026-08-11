@@ -176,6 +176,12 @@ class BlocklistEntry(Base):
     unblocked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     unblocked_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
+    # Midnight attestation tracking
+    midnight_tx_hash: Mapped[str | None] = mapped_column(String(130), nullable=True)
+    midnight_attestation_status: Mapped[str | None] = mapped_column(
+        String(16), nullable=True
+    )  # "pending" | "confirmed" | "failed" | None (not yet attempted)
+
 
 class HoneypotInstance(Base):
     """Deployed honeypot instance for fleet management."""
