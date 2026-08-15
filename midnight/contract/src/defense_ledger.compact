@@ -25,7 +25,8 @@
 // current compiler version before first compilation. The structure below
 // follows the bboard reference template pattern.
 
-pragma language_version >= 1.0;
+pragma language_version >= 0.23.0;
+import CompactStandardLibrary;
 
 // ─── Ledger state ───────────────────────────────────────────────────────────
 
@@ -60,8 +61,9 @@ circuit attestIndicator(
   const disclosedHash = disclose(indicatorHash);
 
   // Increment the public corroboration counter for this indicator
-  const currentCount = corroborationCount.lookup(disclosedHash) ?? 0;
-  corroborationCount.insert(disclosedHash, currentCount + 1);
+  const hasCount = corroborationCount.member(disclosedHash);
+  const currentCount = hasCount ? corroborationCount.lookup(disclosedHash) : 0;
+  corroborationCount.insert(disclosedHash, (currentCount + 1) as Uint<32>);
 
   // Increment the global attestation counter
   totalAttestations.increment(1);
@@ -69,8 +71,9 @@ circuit attestIndicator(
   // Prove the predicate without disclosing the score itself:
   // "this submission's severity score is above the high-confidence threshold"
   if (severityScore >= 70) {
-    const currentHigh = highConfidenceCount.lookup(disclosedHash) ?? 0;
-    highConfidenceCount.insert(disclosedHash, currentHigh + 1);
+    const hasHigh = highConfidenceCount.member(disclosedHash);
+    const currentHigh = hasHigh ? highConfidenceCount.lookup(disclosedHash) : 0;
+    highConfidenceCount.insert(disclosedHash, (currentHigh + 1) as Uint<32>);
   }
 }
 
@@ -90,5 +93,6 @@ circuit queryIndicator(
   indicatorHash: Bytes<32>
 ): Uint<32> {
   const disclosedHash = disclose(indicatorHash);
-  return corroborationCount.lookup(disclosedHash) ?? 0;
+  const hasCount = corroborationCount.member(disclosedHash);
+  return hasCount ? corroborationCount.lookup(disclosedHash) : 0;
 }

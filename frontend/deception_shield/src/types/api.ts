@@ -108,6 +108,8 @@ export interface Stats {
   total_attackers: number;
   active_honeypots: number;
   blocked_ips: number;
+  events_last_hour: number;
+  events_last_24h: number;
   severity_breakdown: Record<string, number>;
 }
 

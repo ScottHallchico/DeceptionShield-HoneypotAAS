@@ -10,16 +10,18 @@
     "test": "node --test test/"
   },
   "dependencies": {
-    "express": "^4.21.0",
+    "@midnight-ntwrk/compact-runtime": "*",
+    "@midnight-ntwrk/midnight-js": "*",
+    "@midnight-ntwrk/midnight-js-contracts": "*",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "*",
+    "@midnight-ntwrk/wallet-api": "*",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "@midnight-ntwrk/compact-runtime": "*",
-    "@midnight-ntwrk/midnight-js-contracts": "*",
-    "@midnight-ntwrk/midnight-js": "*",
-    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "*",
-    "@midnight-ntwrk/wallet-api": "*"
+    "express": "^4.21.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "supertest": "^7.2.2"
+  },
   "engines": {
     "node": ">=20.0.0"
   }

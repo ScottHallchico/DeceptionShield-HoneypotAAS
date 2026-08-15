@@ -1,0 +1,5 @@
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y curl xz-utils ca-certificates
+RUN curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+WORKDIR /app

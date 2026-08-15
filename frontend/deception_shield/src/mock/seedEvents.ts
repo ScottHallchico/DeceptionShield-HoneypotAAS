@@ -213,6 +213,8 @@ export function buildStats(events: AttackEvent[]): Stats {
     total_attackers: new Set(events.map((e) => e.attacker_ip)).size,
     active_honeypots: new Set(events.map((e) => e.honeypot_id)).size,
     blocked_ips: 14,
+    events_last_hour: 42,
+    events_last_24h: 300,
     severity_breakdown: {},
   };
 }

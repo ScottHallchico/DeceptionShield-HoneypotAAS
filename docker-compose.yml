@@ -97,6 +97,18 @@ services:
       PORT: "3001"
       MIDNIGHT_SIMULATE: "true"
       MIDNIGHT_NETWORK: "local-devnet"
+      MIDNIGHT_PROOF_SERVER_URL: "http://midnight-proof-server:6300"
+    networks:
+      - backend-net
+    restart: unless-stopped
+
+  # ── Midnight Proof Server ──────────────────────────────────
+  midnight-proof-server:
+    image: midnightntwrk/proof-server:8.1.0
+    container_name: honeypot-midnight-proof-server
+    command: ["midnight-proof-server", "-v"]
+    ports:
+      - "6300:6300"
     networks:
       - backend-net
     restart: unless-stopped

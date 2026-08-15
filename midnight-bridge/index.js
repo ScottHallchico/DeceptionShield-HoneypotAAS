@@ -227,8 +227,10 @@ app.get("/health", (req, res) => {
 
 // ─── Start ──────────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`midnight-bridge listening on :${PORT} [simulate=${SIMULATE}]`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`midnight-bridge listening on :${PORT} [simulate=${SIMULATE}]`);
+  });
+}
 
 module.exports = app;

@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "",
+  "sources": ["src/defense_ledger.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EA2BA;;;;;;;;;;;;;GAuEC;EAvED;;;;;;;;;;;;;;;;;;;;;;;;;;;IAKA;;;;;;;;;;yEAAoD;IACpD;;;;;;;;;yEAAkC;IAClC;;;;;;;;;;yEAAqD;;;;;;;GAgEpD;;;;;;;;;;;;;;;;;;;;;;;;;"
+}
