@@ -34,7 +34,6 @@ async function main() {
   );
 
   logger.info("Starting wallet and waiting for funds...");
-  const midnightWalletProvider = await MidnightWalletProvider.build(logger, envConfig, walletSeed);
   await midnightWalletProvider.start(true);
 
   logger.info("Setting up MidnightProviders...");
@@ -106,16 +105,27 @@ async function main() {
   hash.fill(1); // dummy hash
   const severity = 75n;
   
-  const tx = await deployedContract.callTx.attestIndicator(hash, severity);
-  logger.info("attestIndicator tx submitted! Transaction data:");
-  logger.info(JSON.stringify(tx.public, null, 2));
+  logger.info("Skipping attestIndicator...");
+  // const tx = await deployedContract.callTx.attestIndicator(hash, severity);
+  // logger.info("attestIndicator tx submitted! Transaction data:");
+  // logger.info(JSON.stringify(tx.public, null, 2));
   
-  logger.info("Calling queryIndicator...");
-  const queryResult = await deployedContract.callTx.queryIndicator(hash);
-  logger.info("queryIndicator completed! Result:");
-  logger.info(String(queryResult.public)); // or maybe queryResult doesn't have public if it's a call result
+  logger.info("Fetching public state...");
+  const contractAddress = deployedContract.deployTxData.public.contractAddress;
+  const publicState = await providers.publicDataProvider.queryContractState(contractAddress);
+  
+  const ledgerState = defenseLedger.ledger(publicState.data);
+  const hashBytes = new Uint8Array(32);
+  const buf = Buffer.from('1111111111111111111111111111111111111111111111111111111111111111', 'hex');
+  hashBytes.set(buf.length > 32 ? buf.slice(0, 32) : buf);
+  
+  const count = ledgerState.corroborationCount.member(hashBytes) 
+    ? ledgerState.corroborationCount.lookup(hashBytes) 
+    : 0n;
 
-  logger.info("Contract deployment and interaction successful.");
+  logger.info(`Direct ledger read corroboration count: ${count}`);
+
+  logger.info("Direct state query successful.");
   process.exit(0);
 }
 

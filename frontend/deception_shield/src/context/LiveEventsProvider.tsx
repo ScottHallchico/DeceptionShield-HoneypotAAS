@@ -126,6 +126,14 @@ export function LiveEventsProvider({ children }: { children: ReactNode }) {
       socket.onopen = () => {
         attempt = 0;
         setConnection("live");
+        // Pre-populate buffer with existing events from REST API
+        api.events({ page_size: 200 }).then((res) => {
+          if (res.items.length > 0) {
+            bufferRef.current = res.items;
+            // Notify listeners so the UI renders existing events
+            res.items.slice().reverse().forEach((ev) => eventListeners.current.forEach((fn) => fn(ev)));
+          }
+        }).catch(() => { /* auth not ready yet — events will arrive via WS */ });
       };
       socket.onmessage = (msg) => {
         try {

@@ -65,8 +65,8 @@ export function AttackerDetailPanel() {
               <span className="label-caps">threat {profile.threat_score}/100</span>
             </div>
 
-            <Field label="Location" value={`${profile.geo.city}, ${profile.geo.country}`} />
-            <Field label="Network" value={`${profile.geo.asn} · ${profile.geo.org}`} mono />
+            <Field label="Location" value={[profile.geo.city, profile.geo.country].filter(Boolean).join(", ") || "Unknown"} />
+            <Field label="Network" value={[profile.geo.asn, profile.geo.org].filter(Boolean).join(" · ") || "Unknown"} mono />
             <Field label="AbuseIPDB" value={`${profile.reputation.abuseipdb_score}/100`} mono />
             <Field
               label="Known malicious"

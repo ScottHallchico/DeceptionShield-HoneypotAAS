@@ -104,10 +104,10 @@ function AttackersPage() {
                   >
                     <td className="mono-ip px-3 py-2.5 text-foreground">{a.ip}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">
-                      {a.geo.city}, {a.geo.country}
+                      {[a.geo.city, a.geo.country].filter(Boolean).join(", ") || "Unknown"}
                     </td>
                     <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
-                      {a.geo.asn}
+                      {a.geo.asn || "Unknown"}
                     </td>
                     <td className="px-3 py-2.5 font-mono tabular-nums">{a.total_events}</td>
                     <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">

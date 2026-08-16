@@ -174,14 +174,12 @@ function BlocklistPage() {
                             <ShieldCheck className="h-3 w-3" /> verified
                           </span>
                           {b.midnight_tx_hash && (
-                            <a
-                              href={`https://explorer.midnight.network/tx/${b.midnight_tx_hash}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-[10px] text-[var(--midnight-verified)] hover:underline opacity-80"
+                            <span
+                              className="text-[10px] text-[var(--midnight-verified)] font-mono"
+                              title={b.midnight_tx_hash}
                             >
-                              view tx ↗
-                            </a>
+                              {b.midnight_tx_hash.slice(0, 6)}...{b.midnight_tx_hash.slice(-4)}
+                            </span>
                           )}
                         </div>
                       ) : b.midnight_attestation_status === "pending" ? (

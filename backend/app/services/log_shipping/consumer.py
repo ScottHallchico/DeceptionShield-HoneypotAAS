@@ -186,6 +186,10 @@ async def start_consumer() -> None:
                     from app.api.websocket.broadcaster import broadcast_event
                     await broadcast_event(normalized)
 
+                    # Evaluate response rules
+                    from app.services.response_engine.engine import evaluate_rules
+                    await evaluate_rules(normalized)
+
                     log.debug(
                         "event_processed",
                         event_id=normalized["id"],

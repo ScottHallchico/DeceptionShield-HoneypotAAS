@@ -54,11 +54,11 @@ function Row({
         <span className={cn("label-caps px-1 py-0.5", SEVERITY_BG[event.severity])}>
           {event.severity}
         </span>
-        <span className="label-caps truncate">{event.technique.replace(/_/g, " ")}</span>
-        <span className="label-caps shrink-0">· {event.mitre_attck_id}</span>
+        <span className="label-caps truncate">{(event.technique ?? "unknown").replace(/_/g, " ")}</span>
+        {event.mitre_attck_id && <span className="label-caps shrink-0">· {event.mitre_attck_id}</span>}
       </div>
       <div className="truncate pl-[11px] font-mono text-[11px] text-muted-foreground">
-        {event.honeypot_id} ← {event.geo.country}
+        {event.honeypot_id} ← {event.geo?.country || "unknown"}
       </div>
     </button>
   );

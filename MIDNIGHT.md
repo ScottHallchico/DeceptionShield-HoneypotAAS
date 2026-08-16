@@ -25,13 +25,14 @@ This generates the TypeScript definitions and JavaScript bundle (`index.d.ts`, `
 
 ## Deployment Status
 
-## Current Status
-**Status:** ✅ Contract Compiles & Deployed (Local Devnet) | ⚠️ Circuit Invocation Blocked (RpcError 1010)
+### Current Status
+**Status:** ✅ Contract Deployed & State Lookups Working | ⚠️ Writes Blocked (Execution Weight)
 
-The Midnight integration is currently functional for deployment to a local devnet but blocked during circuit execution due to node-level rejections.
+The Midnight integration is currently functional for deployment to a local devnet and pure state lookups, but blocked during state-mutating circuit execution due to node-level rejections.
 - **Contract:** Successfully compiles with real exported circuits.
 - **Deployment:** Successfully deploys to local devnet (`dad34768c1d44e8f26f87ab7a24191dd1ba1b59f7b7b19d5c3a11240f2b4e7c4`).
-- **Circuit Invocation:** Fails during transaction submission with `RpcError 1010: Invalid Transaction: Custom error: 117`.
+- **Read Lookups:** Working! `queryIndicator` lookups and network stats bypass the execution limits by reading public state from the ledger directly via the indexer.
+- **Write Operations:** Fails during transaction submission for `attestIndicator` with `RpcError 1010: Invalid Transaction: Custom error: 117` (insufficient transaction fee limits / execution weight block on local devnet).
 
 ### Known Issues & Next Steps
 

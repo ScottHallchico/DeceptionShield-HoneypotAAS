@@ -61,6 +61,7 @@ export interface EventQuery {
   from?: string;
   to?: string;
   page?: number;
+  page_size?: number;
 }
 
 export interface TerminalFrame {

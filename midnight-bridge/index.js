@@ -220,10 +220,17 @@ app.get("/query/:hash", async (req, res) => {
     const buf = Buffer.from(hash, 'hex');
     hashBytes.set(buf.length > 32 ? buf.slice(0, 32) : buf);
 
-    // Call the query circuit
-    const queryTx = await midnightContract.callTx.queryIndicator(hashBytes);
+    // Direct ledger read to bypass circuit execution constraints
+    const publicState = await midnightProviders.publicDataProvider.queryContractState(midnightContract.deployTxData.public.contractAddress);
+    const defenseLedger = await import('../midnight/contract/build/defense_ledger.mjs');
+    const ledgerState = defenseLedger.ledger(publicState.data);
+
+    const count = ledgerState.corroborationCount.member(hashBytes) 
+      ? ledgerState.corroborationCount.lookup(hashBytes) 
+      : 0n;
+
     return res.json({
-      corroborationCount: Number(queryTx.public || 0),
+      corroborationCount: Number(count),
       highConfidenceCount: 0 
     });
   } catch (err) {
@@ -244,12 +251,14 @@ app.get("/stats", async (req, res) => {
 
     if (!midnightContract) throw new Error("Midnight contract not initialized.");
     
-    // State lookup is deprecated in some forms, checking generic state:
-    // With `testkit-js` and modern contracts, state is often read from the public indexer or local state DB.
-    // For now we'll just return simulated stats if the real state isn't directly exposed without a query.
+    // Direct ledger state read
+    const publicState = await midnightProviders.publicDataProvider.queryContractState(midnightContract.deployTxData.public.contractAddress);
+    const defenseLedger = await import('../midnight/contract/build/defense_ledger.mjs');
+    const ledgerState = defenseLedger.ledger(publicState.data);
+
     return res.json({
-      totalAttestations: 0,
-      uniqueIndicators: -1,
+      totalAttestations: Number(ledgerState.totalAttestations),
+      uniqueIndicators: Number(ledgerState.corroborationCount.size()),
       networkMode: process.env.MIDNIGHT_NETWORK || "real",
     });
   } catch (err) {

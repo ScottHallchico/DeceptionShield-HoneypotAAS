@@ -32,9 +32,9 @@ class ReputationInfo(BaseModel):
 # ─── Event schemas ───────────────────────────────────────────────────────────
 
 
-HoneypotTypeEnum = Literal["cowrie", "dionaea", "wp-decoy", "rdp-decoy", "smb-decoy"]
-EventTypeEnum = Literal["login_attempt", "command_exec", "file_download", "exploit_probe", "port_scan"]
-TechniqueEnum = Literal["brute_force", "credential_reuse", "payload_drop", "cve_exploit_attempt"]
+HoneypotTypeEnum = str  # Accept any honeypot type string from the DB
+EventTypeEnum = str  # Accept any event type string
+TechniqueEnum = str  # Accept any technique string (seed data has free-form names)
 SeverityEnum = Literal["low", "medium", "high", "critical"]
 
 
