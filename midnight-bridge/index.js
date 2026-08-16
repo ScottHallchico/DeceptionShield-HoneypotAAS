@@ -141,7 +141,7 @@ app.post("/deploy", async (req, res) => {
   if (SIMULATE) return res.status(400).json({ error: "Cannot deploy in simulate mode" });
   try {
      const { deployContract } = await import('@midnight-ntwrk/midnight-js-contracts');
-     const defenseLedger = await import('../midnight/contract/build/defense_ledger.mjs');
+     const defenseLedger = await import('./contract/contract/index.js');
      const { CompiledContract } = await import('@midnight-ntwrk/compact-js');
      
      if (!midnightProviders) throw new Error("Midnight providers not initialized");
