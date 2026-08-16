@@ -25,9 +25,15 @@ This generates the TypeScript definitions and JavaScript bundle (`index.d.ts`, `
 
 ## Deployment Status
 
-**Current Status:** Integration Complete — Ready for Testnet Deployment
+## Current Status
+**Status:** ✅ Contract Compiles & Deployed (Local Devnet) | ⚠️ Circuit Invocation Blocked (RpcError 1010)
 
-We have successfully resolved the previous blockers preventing end-to-end deployment:
+The Midnight integration is currently functional for deployment to a local devnet but blocked during circuit execution due to node-level rejections.
+- **Contract:** Successfully compiles with real exported circuits.
+- **Deployment:** Successfully deploys to local devnet (`dad34768c1d44e8f26f87ab7a24191dd1ba1b59f7b7b19d5c3a11240f2b4e7c4`).
+- **Circuit Invocation:** Fails during transaction submission with `RpcError 1010: Invalid Transaction: Custom error: 117`.
+
+### Known Issues & Next Steps
 
 1. **Empty Contract Interface (Fixed):** The `export` keywords were added to the `ledger` and `circuit` declarations in `defense_ledger.compact`. The contract now successfully compiles into complete TypeScript bindings with accessible state interfaces. We also secured the severity threshold check by wrapping it in `disclose()` to prevent private witness disclosure failures.
 2. **SDK Provider API Migration (Fixed):** We refactored `midnight-bridge` to adopt the modern `@midnight-ntwrk/testkit-js` SDK architecture, replacing the deprecated legacy providers with `MidnightWalletProvider` and `CustomZkConfigProvider`.

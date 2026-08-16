@@ -34,7 +34,7 @@ async function main() {
   );
 
   logger.info("Starting wallet and waiting for funds...");
-  // start(true) waits for funds!
+  const midnightWalletProvider = await MidnightWalletProvider.build(logger, envConfig, walletSeed);
   await midnightWalletProvider.start(true);
 
   logger.info("Setting up MidnightProviders...");
