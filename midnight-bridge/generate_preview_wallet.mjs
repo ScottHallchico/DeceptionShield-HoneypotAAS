@@ -12,8 +12,10 @@ import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { MidnightWalletProvider } from '@midnight-ntwrk/testkit-js';
 import pino from 'pino';
 
-// Generate a deterministic seed for Preview — save this!
-const PREVIEW_SEED = crypto.randomBytes(32).toString('hex');
+import dotenv from 'dotenv';
+dotenv.config();
+const PREVIEW_SEED = process.env.MIDNIGHT_WALLET_SEED;
+if (!PREVIEW_SEED) throw new Error("Missing MIDNIGHT_WALLET_SEED in .env");
 
 const envConfig = {
   walletNetworkId: 'preview',

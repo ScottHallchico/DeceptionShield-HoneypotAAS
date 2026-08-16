@@ -3,7 +3,10 @@ import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { MidnightWalletProvider } from '@midnight-ntwrk/testkit-js';
 import pino from 'pino';
 
-const PREVIEW_SEED = '64bec6f63b55eb27da454e2c368b7950ed8c516508cd979e469c77f6095b5deb';
+import dotenv from 'dotenv';
+dotenv.config();
+const PREVIEW_SEED = process.env.MIDNIGHT_WALLET_SEED;
+if (!PREVIEW_SEED) throw new Error("Missing MIDNIGHT_WALLET_SEED in .env");
 
 const envConfig = {
   walletNetworkId: 'test',
