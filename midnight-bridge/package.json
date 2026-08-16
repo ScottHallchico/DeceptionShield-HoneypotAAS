@@ -1,6 +1,7 @@
 {
   "name": "midnight-bridge",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "description": "Minimal internal HTTP service wrapping Midnight SDK calls for the DeceptionShield Python backend",
   "main": "index.js",
@@ -10,19 +11,27 @@
     "test": "node --test test/"
   },
   "dependencies": {
-    "@midnight-ntwrk/compact-runtime": "*",
-    "@midnight-ntwrk/midnight-js": "*",
-    "@midnight-ntwrk/midnight-js-contracts": "*",
-    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "*",
-    "@midnight-ntwrk/wallet-api": "*",
+    "@midnight-ntwrk/compact-js": "2.5.1",
+    "@midnight-ntwrk/compact-runtime": "0.16.0",
+    "@midnight-ntwrk/midnight-js": "4.1.1",
+    "@midnight-ntwrk/midnight-js-contracts": "4.1.1",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "4.1.1",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.1.1",
+    "@midnight-ntwrk/midnight-js-level-private-state-provider": "4.1.1",
+    "@midnight-ntwrk/midnight-js-network-id": "4.1.1",
+    "@midnight-ntwrk/testkit-js": "^4.1.1",
+    "@midnight-ntwrk/wallet-sdk": "^1.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.21.0"
-  },
-  "devDependencies": {
-    "supertest": "^7.2.2"
+    "express": "^4.21.0",
+    "rxjs": "^7.8.1",
+    "ws": "^8.18.0"
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "overrides": {
+    "@midnight-ntwrk/wallet-sdk": "$@midnight-ntwrk/wallet-sdk",
+    "@midnight-ntwrk/ledger-v8": "8.1.0"
   }
 }

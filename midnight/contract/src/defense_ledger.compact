@@ -30,9 +30,9 @@ import CompactStandardLibrary;
 
 // ─── Ledger state ───────────────────────────────────────────────────────────
 
-ledger corroborationCount: Map<Bytes<32>, Uint<32>>;
-ledger totalAttestations: Counter;
-ledger highConfidenceCount: Map<Bytes<32>, Uint<32>>;
+export ledger corroborationCount: Map<Bytes<32>, Uint<32>>;
+export ledger totalAttestations: Counter;
+export ledger highConfidenceCount: Map<Bytes<32>, Uint<32>>;
 
 // ─── Circuits ───────────────────────────────────────────────────────────────
 
@@ -54,7 +54,7 @@ ledger highConfidenceCount: Map<Bytes<32>, Uint<32>>;
 //   3. If severityScore >= 70, increments the high-confidence counter —
 //      disclosing only the boolean "above threshold", not the score itself
 
-circuit attestIndicator(
+export circuit attestIndicator(
   indicatorHash: Bytes<32>,
   severityScore: Uint<8>
 ): [] {
@@ -70,7 +70,7 @@ circuit attestIndicator(
 
   // Prove the predicate without disclosing the score itself:
   // "this submission's severity score is above the high-confidence threshold"
-  if (severityScore >= 70) {
+  if (disclose(severityScore >= 70)) {
     const hasHigh = highConfidenceCount.member(disclosedHash);
     const currentHigh = hasHigh ? highConfidenceCount.lookup(disclosedHash) : 0;
     highConfidenceCount.insert(disclosedHash, (currentHigh + 1) as Uint<32>);
@@ -89,7 +89,7 @@ circuit attestIndicator(
 // Returns:
 //   The current corroboration count for this indicator, or 0 if unseen.
 
-circuit queryIndicator(
+export circuit queryIndicator(
   indicatorHash: Bytes<32>
 ): Uint<32> {
   const disclosedHash = disclose(indicatorHash);

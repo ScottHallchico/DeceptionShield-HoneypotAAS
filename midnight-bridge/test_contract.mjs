@@ -1,32 +1,111 @@
 import { deployContract } from '@midnight-ntwrk/midnight-js-contracts';
-import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
-import { walletProvider } from '@midnight-ntwrk/wallet-api';
+import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { MidnightWalletProvider, initializeMidnightProviders } from '@midnight-ntwrk/testkit-js';
+import pino from 'pino';
 import * as defenseLedger from './contract/contract/index.js';
 
+const GENESIS_MINT_WALLET_SEED = '0000000000000000000000000000000000000000000000000000000000000001';
+
+const indexerUrl = 'http://127.0.0.1:8088/api/v4/graphql';
+const indexerWsUrl = 'ws://127.0.0.1:8088/api/v4/graphql/ws';
+const proverUrl = 'http://127.0.0.1:6300';
+const nodeUrl = 'http://127.0.0.1:9944';
+
 async function main() {
-  const providers = {
-    privateStateProvider: httpClientProofProvider('http://127.0.0.1:6300'),
-    zkConfigProvider: httpClientProofProvider('http://127.0.0.1:6300'),
-    publicDataProvider: 'http://127.0.0.1:8088',
-    walletProvider: walletProvider('0000000000000000000000000000000000000000000000000000000000000000')
+  const logger = pino({ level: 'info' });
+  setNetworkId('undeployed');
+  
+  const envConfig = {
+    walletNetworkId: 'undeployed',
+    networkId: 'undeployed',
+    indexer: indexerUrl,
+    indexerWS: indexerWsUrl,
+    node: nodeUrl,
+    nodeWS: nodeUrl.replace('http', 'ws'),
+    proofServer: proverUrl,
+    faucet: undefined
   };
 
-  console.log("Deploying contract...");
-  const contract = await deployContract(providers, {
-    compiledContract: defenseLedger.contract,
-    initialPrivateState: {} // if no private state needed initially
-  });
-  const address = contract.deployTxData.public.contractAddress;
-  console.log(`Deployed to: ${address}`);
+  logger.info("Initializing Wallet with testkit-js...");
+  const midnightWalletProvider = await MidnightWalletProvider.build(
+    logger,
+    envConfig,
+    GENESIS_MINT_WALLET_SEED
+  );
 
-  const testHash = "0x0000000000000000000000000000000000000000000000000000000000001234";
+  logger.info("Starting wallet and waiting for funds...");
+  // start(true) waits for funds!
+  await midnightWalletProvider.start(true);
 
-  console.log("Calling attestIndicator(severity: 50)...");
-  await contract.attestIndicator(testHash, 50n);
+  logger.info("Setting up MidnightProviders...");
+  const contractConfig = {
+    privateStateStoreName: 'defense_ledger-private-state',
+    zkConfigPath: './zk-configs',
+  };
+  
+  const providers = initializeMidnightProviders(
+    midnightWalletProvider,
+    envConfig,
+    contractConfig
+  );
 
-  console.log("Calling queryIndicator...");
-  const count1 = await contract.queryIndicator(testHash);
-  console.log(`Corroboration count: ${count1}`);
+  const { ZKConfigProvider, createProverKey, createVerifierKey, createZKIR } = await import('@midnight-ntwrk/midnight-js-types');
+  const fs = await import('fs/promises');
+  const path = await import('path');
+
+  class CustomZkConfigProvider extends ZKConfigProvider {
+    constructor(zkConfigPath) {
+      super();
+      this.zkConfigPath = zkConfigPath;
+    }
+    async getProverKey(circuitId) {
+      const circuitName = circuitId.split('#')[1] || circuitId;
+      const filePath = path.resolve(this.zkConfigPath, 'keys', circuitName + '.prover');
+      const buffer = await fs.readFile(filePath);
+      return createProverKey(buffer);
+    }
+    async getVerifierKey(circuitId) {
+      const circuitName = circuitId.split('#')[1] || circuitId;
+      const filePath = path.resolve(this.zkConfigPath, 'keys', circuitName + '.vk');
+      const buffer = await fs.readFile(filePath);
+      return createVerifierKey(buffer);
+    }
+    async getZKIR(circuitId) {
+      const circuitName = circuitId.split('#')[1] || circuitId;
+      const filePath = path.resolve(this.zkConfigPath, 'zkir', circuitName + '.bzkir');
+      const buffer = await fs.readFile(filePath);
+      return createZKIR(buffer);
+    }
+  }
+
+  providers.zkConfigProvider = new CustomZkConfigProvider('./contract');
+  
+  // Also proofProvider needs the new zkConfigProvider!
+  const { httpClientProofProvider } = await import('@midnight-ntwrk/midnight-js-http-client-proof-provider');
+  providers.proofProvider = httpClientProofProvider(envConfig.proofServer, providers.zkConfigProvider);
+
+  const { CompiledContract } = await import('@midnight-ntwrk/compact-js');
+  const contractInstance = CompiledContract.withWitnesses(
+    CompiledContract.make('defenseLedger', defenseLedger.Contract),
+    {}
+  );
+
+  logger.info("Deploying Defense Ledger contract...");
+  const deployedContract = await deployContract(
+    providers,
+    {
+      compiledContract: contractInstance,
+      initialPrivateState: {}
+    }
+  );
+
+  logger.info(`Contract deployed! Contract Address: ${deployedContract.deployTxData.public.contractAddress}`);
+
+  logger.info("Contract deployment and interaction successful.");
+  process.exit(0);
 }
 
-main().catch(console.error);
+main().catch(error => {
+  console.error(error);
+  process.exit(1);
+});

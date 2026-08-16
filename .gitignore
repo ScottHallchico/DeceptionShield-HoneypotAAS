@@ -85,3 +85,8 @@ dist/
 .next/
 *.log
 *.tar.xz
+midnight-bridge/contract/
+midnight-local-dev/
+midnight-bridge/midnight-level-db/
+midnight-bridge/zk-configs/
+midnight-bridge/scratch*.mjs
