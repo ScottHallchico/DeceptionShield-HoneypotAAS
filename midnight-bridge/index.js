@@ -222,7 +222,7 @@ app.get("/query/:hash", async (req, res) => {
 
     // Direct ledger read to bypass circuit execution constraints
     const publicState = await midnightProviders.publicDataProvider.queryContractState(midnightContract.deployTxData.public.contractAddress);
-    const defenseLedger = await import('../midnight/contract/build/defense_ledger.mjs');
+    const defenseLedger = await import('./contract/contract/index.js');
     const ledgerState = defenseLedger.ledger(publicState.data);
 
     const count = ledgerState.corroborationCount.member(hashBytes) 
@@ -231,7 +231,9 @@ app.get("/query/:hash", async (req, res) => {
 
     return res.json({
       corroborationCount: Number(count),
-      highConfidenceCount: 0 
+      highConfidenceCount: ledgerState.highConfidenceCount.member(hashBytes)
+        ? Number(ledgerState.highConfidenceCount.lookup(hashBytes))
+        : 0
     });
   } catch (err) {
     logger.error("[ERROR] /query failed:", err);
@@ -253,7 +255,7 @@ app.get("/stats", async (req, res) => {
     
     // Direct ledger state read
     const publicState = await midnightProviders.publicDataProvider.queryContractState(midnightContract.deployTxData.public.contractAddress);
-    const defenseLedger = await import('../midnight/contract/build/defense_ledger.mjs');
+    const defenseLedger = await import('./contract/contract/index.js');
     const ledgerState = defenseLedger.ledger(publicState.data);
 
     return res.json({
