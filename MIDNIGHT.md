@@ -30,8 +30,19 @@ This generates the TypeScript definitions and JavaScript bundle (`index.d.ts`, `
 We have successfully resolved the previous blockers preventing end-to-end deployment:
 
 1. **Empty Contract Interface (Fixed):** The `export` keywords were added to the `ledger` and `circuit` declarations in `defense_ledger.compact`. The contract now successfully compiles into complete TypeScript bindings with accessible state interfaces. We also secured the severity threshold check by wrapping it in `disclose()` to prevent private witness disclosure failures.
-2. **SDK Provider API Migration (Fixed):** We refactored `midnight-bridge` to adopt the modern `@midnight-ntwrk/wallet` SDK architecture. We replaced the deprecated `createMidnightProvider` and `walletProvider` functions with the new `WalletBuilder` and discrete provider packages (e.g., `levelPrivateStateProvider`, `indexerPublicDataProvider`, `NodeZkConfigProvider`).
+2. **SDK Provider API Migration (Fixed):** We refactored `midnight-bridge` to adopt the modern `@midnight-ntwrk/testkit-js` SDK architecture, replacing the deprecated legacy providers with `MidnightWalletProvider` and `CustomZkConfigProvider`.
 
 The application currently defaults to `MIDNIGHT_SIMULATE="true"` in the `docker-compose.yml` environment to allow rapid frontend/backend testing without requiring the heavy Midnight devnet to be running. 
 
 To disable simulation and interact with the real deployed ledger, change `MIDNIGHT_SIMULATE="false"` in your docker-compose file!
+
+### 2. Midnight Devnet Sandbox & Deployment
+To interact with Midnight, you need the Midnight Devnet local sandbox running.
+1. Download the latest release from the [Midnight GitHub](https://github.com/midnight-ntwrk/midnight-local-dev).
+2. Start it using `npm start` in the `midnight-local-dev` folder.
+3. Deploy the compiled `defense_ledger` contract:
+   - Make sure `MIDNIGHT_SIMULATE=false` in your `.env`.
+   - Call the `/deploy` endpoint which utilizes `@midnight-ntwrk/testkit-js` to build the wallet and deploy using `CustomZkConfigProvider`.
+   - **Current Deployed Contract Address (Local Devnet)**: `dad34768c1d44e8f26f87ab7a24191dd1ba1b59f7b7b19d5c3a11240f2b4e7c4`
+
+> Note: The JS SDK packages have strict version dependencies. We've overridden `@midnight-ntwrk/onchain-runtime-v3` to `3.1.0` in package.json to resolve `StateValue` type mismatch errors during circuit invocation.

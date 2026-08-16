@@ -1,7 +1,7 @@
-const test = require("node:test");
-const assert = require("node:assert");
-const request = require("supertest");
-const app = require("../index"); // Express app exported from index.js
+import { test } from "node:test";
+import assert from "node:assert";
+import request from "supertest";
+import app from "../index.js";
 
 test("Midnight Bridge API Tests", async (t) => {
 

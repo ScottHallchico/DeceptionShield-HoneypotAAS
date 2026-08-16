@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "test": "node --test test/"
+    "test": "node --test \"test/**/*.js\""
   },
   "dependencies": {
     "@midnight-ntwrk/compact-js": "2.5.1",
@@ -32,6 +32,11 @@
   },
   "overrides": {
     "@midnight-ntwrk/wallet-sdk": "$@midnight-ntwrk/wallet-sdk",
-    "@midnight-ntwrk/ledger-v8": "8.1.0"
+    "@midnight-ntwrk/ledger-v8": "8.1.0",
+    "@midnight-ntwrk/onchain-runtime-v3": "3.1.0"
+  },
+  "devDependencies": {
+    "chai": "^6.2.2",
+    "supertest": "^7.2.2"
   }
 }
