@@ -13,24 +13,27 @@ const nodeUrl = 'http://127.0.0.1:9944';
 
 async function main() {
   const logger = pino({ level: 'info' });
-  setNetworkId('undeployed');
+  setNetworkId('preview');
   
   const envConfig = {
-    walletNetworkId: 'undeployed',
-    networkId: 'undeployed',
-    indexer: indexerUrl,
-    indexerWS: indexerWsUrl,
-    node: nodeUrl,
-    nodeWS: nodeUrl.replace('http', 'ws'),
-    proofServer: proverUrl,
+    walletNetworkId: 'preview',
+    networkId: 'preview',
+    indexer: 'https://indexer.preview.midnight.network/api/v4/graphql',
+    indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
+    node: 'https://rpc.preview.midnight.network',
+    nodeWS: 'wss://rpc.preview.midnight.network',
+    proofServer: 'http://localhost:6300',
     faucet: undefined
   };
+
+  // Seed with funded tNIGHT
+  const PREVIEW_SEED = '64bec6f63b55eb27da454e2c368b7950ed8c516508cd979e469c77f6095b5deb';
 
   logger.info("Initializing Wallet with testkit-js...");
   const midnightWalletProvider = await MidnightWalletProvider.build(
     logger,
     envConfig,
-    GENESIS_MINT_WALLET_SEED
+    PREVIEW_SEED
   );
 
   logger.info("Starting wallet and waiting for funds...");

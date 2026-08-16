@@ -26,7 +26,9 @@ This generates the TypeScript definitions and JavaScript bundle (`index.d.ts`, `
 ## Deployment Status
 
 ### Current Status
-**Status:** ✅ Contract Deployed & State Lookups Working | ⚠️ Writes Blocked (Execution Weight)
+**Status:** 🛑 BLOCKED (Preview Network Node Compatibility)
+
+Preview deployment attempted. Wallet funded successfully — 5,000 tNIGHT confirmed received via the public faucet. DUST generation (NIGHT→DUST conversion transaction) was consistently rejected by the public Preview RPC node (wss://rpc.preview.midnight.network/) during submitAndWatchExtrinsic, closing the connection with code 1000 (Normal Closure) — occurring identically on repeated attempts, indicating a structural client/node compatibility issue with @midnight-ntwrk/testkit-js against the current Preview network version, not a funding, config, or application-code issue. Full trace preserved in dust_generation_failure.md. The integration is fully verified end-to-end on local devnet: contract compiles with real exported circuits, deploys successfully (contract address dad34768c1d44e8f26f87ab7a24191dd1ba1b59f7b7b19d5c3a11240f2b4e7c4), and reads (queryIndicator, network stats) work through direct ledger-state queries via the indexer, bypassing the blocked transaction-submission path entirely.
 
 The Midnight integration is currently functional for deployment to a local devnet and pure state lookups, but blocked during state-mutating circuit execution due to node-level rejections.
 - **Contract:** Successfully compiles with real exported circuits.
