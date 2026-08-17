@@ -8,6 +8,10 @@ The smart contract is written in **Compact** and resides in `midnight/contract/s
 
 ## Setup and Compilation
 
+- [x] **Devnet Synchronization Failure**: Hardcoded Docker image tags for `midnight-node` and `indexer-standalone` to version `1.0.0` and `4.3.3` respectively to ensure consistent behavior across local dev environments. Bridge dependencies pinned to `@midnight-ntwrk/*: ^4.1.1`. Test suite confirms compatibility.
+- [x] **`txHistoryStorage` Limitations**: The `testkit-js` implementation of `txHistoryStorage` relies on an in-memory storage driver (`{"storage":{}}`). When the devnet contains existing transactions for the wallet's seed (e.g., after contract deployment), restarting the `midnight-bridge` server causes `Wallet.Sync` ErrorEvents due to the wallet attempting to process historical transactions from genesis using `4.1.1` parsers against `1.0.0` chain data. 
+    *Workaround*: Start with a clean devnet state (`docker compose down -v`), do not restart the bridge after deploying, or use a new seed for fresh runs.
+
 We have fully verified the `defense_ledger.compact` contract using the official Compact compiler (`0.31.1`). 
 
 ### Compiling the Contract

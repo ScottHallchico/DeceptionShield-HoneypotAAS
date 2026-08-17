@@ -193,8 +193,15 @@ app.post("/attest", async (req, res) => {
     hashBytes.set(buf.length > 32 ? buf.slice(0, 32) : buf);
     
     // Proper wrapper call interface for JS Contracts
-    const tx = await midnightContract.callTx.attestIndicator(hashBytes, BigInt(severityScore));
-    return res.json({ txHash: tx.public?.txHash || 'unknown_hash', status: "confirmed" });
+    let tx;
+    if (midnightContract.callTx && typeof midnightContract.callTx.attestIndicator === 'function') {
+        tx = await midnightContract.callTx.attestIndicator(hashBytes, BigInt(severityScore));
+    } else if (typeof midnightContract.attestIndicator === 'function') {
+        tx = await midnightContract.attestIndicator(hashBytes, BigInt(severityScore));
+    } else {
+        throw new Error("Cannot find attestIndicator method on midnightContract");
+    }
+    return res.json({ txHash: tx.public?.txHash || tx?.deployTxData?.public?.txHash || 'unknown_hash', status: "confirmed" });
   } catch (err) {
     logger.error("[ERROR] /attest failed:", err);
     return res.status(500).json({ error: "Attestation failed", detail: String(err), status: "failed" });

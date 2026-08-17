@@ -2,6 +2,9 @@ import { deployContract } from '@midnight-ntwrk/midnight-js-contracts';
 import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { MidnightWalletProvider, initializeMidnightProviders } from '@midnight-ntwrk/testkit-js';
 import pino from 'pino';
+import dotenv from 'dotenv';
+
+dotenv.config();
 import * as defenseLedger from './contract/contract/index.js';
 
 const GENESIS_MINT_WALLET_SEED = '0000000000000000000000000000000000000000000000000000000000000001';
@@ -13,22 +16,24 @@ const nodeUrl = 'http://127.0.0.1:9944';
 
 async function main() {
   const logger = pino({ level: 'info' });
-  setNetworkId('preview');
+  setNetworkId(process.env.MIDNIGHT_NETWORK_ID);
   
   const envConfig = {
-    walletNetworkId: 'preview',
-    networkId: 'preview',
-    indexer: 'https://indexer.preview.midnight.network/api/v4/graphql',
-    indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
-    node: 'https://rpc.preview.midnight.network',
-    nodeWS: 'wss://rpc.preview.midnight.network',
-    proofServer: 'http://localhost:6300',
-    faucet: undefined
+    walletNetworkId: process.env.MIDNIGHT_NETWORK_ID,
+    networkId: process.env.MIDNIGHT_NETWORK_ID,
+    indexer: process.env.MIDNIGHT_INDEXER_URL,
+    indexerWS: process.env.MIDNIGHT_INDEXER_WS_URL,
+    node: process.env.MIDNIGHT_NODE_URL,
+    nodeWS: process.env.MIDNIGHT_NODE_URL.replace('http', 'ws'),
+    proofServer: process.env.MIDNIGHT_PROOF_SERVER_URL,
+    faucet: undefined,
+    costParameters: {
+      additionalFeeOverhead: "0",
+      feeBlocksMargin: 100
+    }
   };
 
   // Seed with funded tNIGHT
-  import dotenv from 'dotenv';
-  dotenv.config();
   const PREVIEW_SEED = process.env.MIDNIGHT_WALLET_SEED;
   if (!PREVIEW_SEED) throw new Error("Missing MIDNIGHT_WALLET_SEED in .env");
 

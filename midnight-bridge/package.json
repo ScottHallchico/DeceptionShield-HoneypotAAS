@@ -8,7 +8,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "test": "node --test \"test/**/*.js\""
+    "test": "node --test \"test/**/*.js\"",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-js": "2.5.1",
@@ -24,7 +26,10 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "rxjs": "^7.8.1",
+    "testcontainers": "^12.1.0",
     "ws": "^8.18.0"
   },
   "engines": {
@@ -32,11 +37,14 @@
   },
   "overrides": {
     "@midnight-ntwrk/wallet-sdk": "$@midnight-ntwrk/wallet-sdk",
-    "@midnight-ntwrk/ledger-v8": "8.1.0",
     "@midnight-ntwrk/onchain-runtime-v3": "3.1.0"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.5",
     "chai": "^6.2.2",
-    "supertest": "^7.2.2"
+    "supertest": "^7.2.2",
+    "tslib": "^2.8.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1"
   }
 }
